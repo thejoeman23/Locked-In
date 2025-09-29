@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [ExecuteAlways]
@@ -6,15 +7,22 @@ public class Shadow : MonoBehaviour
     public RectTransform Target;
     private RectTransform _rectTransform;
     private UIData _data;
+    
+    private void Awake()
+    {
+        _data = UIManager.Instance.config;
+    }
 
     private void Start()
     {
         _rectTransform = GetComponent<RectTransform>();
-        _data = UIManager.Instance.config;
     }
 
     private void Update()
     {
+        if (_data == null)
+            return;
+        
         if (Target == null) return;
 
         Vector3 targetWorldPos = Target.position;

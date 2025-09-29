@@ -1,18 +1,29 @@
-using System.Collections.Generic;
 using Mirror;
+using UnityEngine;
 
 public class LockedInNetworkManager : NetworkManager
 {
-    public List<Student> students;
+    public Teacher teacher;
 
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
-        base.OnServerAddPlayer(conn);
-
-        Student student = conn.identity.GetComponent<Student>();
-        if (student != null)
+        if (numPlayers == 0)
         {
-            students.Add(student);
+            // Host/teacher joins first
+            base.OnServerAddPlayer(conn);
+            
+            teacher = conn.identity.GetComponent<Teacher>();
+        }
+        else
+        {
+            // Students
+            base.OnServerAddPlayer(conn);
+
+            Student student = conn.identity.GetComponent<Student>();
+            if (student != null)
+            {
+                teacher.students.Add(student);
+            }
         }
     }
 }
