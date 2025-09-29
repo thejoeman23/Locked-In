@@ -3,31 +3,11 @@ using UnityEngine;
 
 public class Student : NetworkBehaviour
 {
-    [SyncVar] public string essay;
     [SyncVar] public bool isIdle;
-    [SyncVar] public string studentName;
+    [SyncVar] public Exam exam;
 
-    [Command]
-    public void UpdateEssay(string text)
+    public string GetExamJsonForSubmission()
     {
-        essay = text;
-    }
-
-    [Command]
-    public void UpdateIsIdle(bool idle)
-    {
-        isIdle = idle;
-    }
-
-    [Command]
-    public void SetName(string name)
-    {
-        studentName = name;
-    }
-    
-    [Command]
-    public void NotifyTeacherOfTabOut()
-    {
-        // do something
+        return JsonUtility.ToJson(exam);
     }
 }
