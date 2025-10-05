@@ -13,34 +13,33 @@ public class LockedInNetworkManager : NetworkManager
     {
         base.OnServerAddPlayer(conn);
 
-        // Skip teacher initialization if this is the host
-        if (conn.identity.gameObject.GetComponent<Teacher>() != null)
-            return;
+        // If this is the host player and teacher hasn't been assigned yet
+        if (conn.identity.gameObject.GetComponent<Teacher>() == null && teacher == null)
+        {
+            teacher = conn.identity.gameObject.AddComponent<Teacher>();
 
+            TelepathyTransport transport = GetComponent<TelepathyTransport>();
+            string ip = GetLocalIPAddress();
+            ushort port = transport.port;
+            teacher.SetJoinCode(JoinCode.Encode(ip, port));
+        }
+
+        // Add students
         Student student = conn.identity.GetComponent<Student>();
-        if (student != null)
+        if (student != null && teacher != null)
             teacher.students.Add(student);
     }
 
     public override void OnStartHost()
     {
-        base.OnStartHost();
+        // Assign a random port before starting the host
+        TelepathyTransport transport = GetComponent<TelepathyTransport>();
+        transport.port = (ushort)UnityEngine.Random.Range(2000, 65535); // avoid very low ports
 
-        // Add teacher component to the host player
-        if (NetworkClient.connection != null && NetworkClient.connection.identity != null)
-        {
-            teacher = NetworkClient.connection.identity.gameObject.AddComponent<Teacher>();
-
-            string ip = NetworkManager.singleton.networkAddress;
-            ushort port = (ushort)UnityEngine.Random.Range(0, 65535);
-            GetComponent<TelepathyTransport>().port = port;
-
-            teacher.SetJoinCode(JoinCode.Encode(ip, port));
-        }
+        base.OnStartHost(); // Mirror now starts the server on this port
     }
-    
 
-    public override void OnStopServer()
+    public override void OnStopHost()
     {
         teacher.RemoveJoinCode();
         base.OnStopHost();
@@ -78,9 +77,6 @@ public class LockedInNetworkManager : NetworkManager
     
     IEnumerator TryConnect(string hostIP, ushort hostPort)
     {
-        TelepathyTransport transport = GetComponent<TelepathyTransport>();
-        transport.port = hostPort;
-
         int maxAttempts = 5;
         int attempt = 0;
 
@@ -90,10 +86,11 @@ public class LockedInNetworkManager : NetworkManager
             {
                 Debug.Log("Client already active, shutting down before reconnecting.");
                 NetworkClient.Shutdown();
-                yield return null; // wait one frame
+                yield return null;
             }
 
-            StartClient();
+            // Connect directly using host IP and port
+            NetworkClient.Connect(hostIP);
 
             float timeout = 1f;
             float timer = 0f;
