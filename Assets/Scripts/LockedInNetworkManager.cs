@@ -19,7 +19,7 @@ public class LockedInNetworkManager : NetworkManager
             teacher = conn.identity.gameObject.AddComponent<Teacher>();
 
             TelepathyTransport transport = GetComponent<TelepathyTransport>();
-            string ip = GetLocalIPAddress();
+            string ip = networkAddress;
             ushort port = transport.port;
             teacher.SetJoinCode(JoinCode.Encode(ip, port));
         }
@@ -30,86 +30,54 @@ public class LockedInNetworkManager : NetworkManager
             teacher.students.Add(student);
     }
 
-    public override void OnStartHost()
+    public void BeginHost()
     {
-        // Assign a random port before starting the host
         TelepathyTransport transport = GetComponent<TelepathyTransport>();
-        transport.port = (ushort)UnityEngine.Random.Range(2000, 65535); // avoid very low ports
+        transport.port = (ushort)UnityEngine.Random.Range(2000, 9999);
 
-        base.OnStartHost(); // Mirror now starts the server on this port
-    }
+        // Bind host to local LAN IP instead of localhost
+        networkAddress = GetLocalIPAddress(); // returns e.g. 172.30.30.1
+        Debug.Log($"Host will listen on {networkAddress}:{transport.port}");
 
-    public override void OnStopHost()
-    {
-        teacher.RemoveJoinCode();
-        base.OnStopHost();
+        StartHost();
     }
 
     public void JoinStudent(TMP_InputField inputField)
     {
         string code = inputField.text.Trim().ToUpperInvariant();
-        Debug.Log($"Join code entered: {code}");
 
-        try
+        (string hostIP, ushort hostPort) = JoinCode.Decode(code);
+        Debug.Log($"Join code entered: {code}\nTrying to connect to {hostIP}: {hostPort}");
+        
+
+        // If the decoded IP looks like just a last octet (e.g. "105"), rebuild it
+        if (!hostIP.Contains("."))
         {
-            (string hostIP, ushort hostPort) = JoinCode.Decode(code);
-
-            // Detect if host is on the same machine
-            string localIP = GetLocalIPAddress();
-            string[] localParts = localIP.Split('.');
-            string[] hostParts = hostIP.Split('.');
-            if (localParts.Length == 4 && hostParts.Length == 4 && localParts[3] == hostParts[3]) // same last octet
-            {
-                hostIP = "127.0.0.1"; // use loopback for same-machine host
-            }
-
-            singleton.networkAddress = hostIP;
-
-            // DO NOT set TelepathyTransport.port for client; it will use ephemeral port
-
-            StartCoroutine(TryConnect(hostIP, hostPort));
+            string prefix = GetLocalPrefix(); // e.g. "192.168.0."
+            hostIP = prefix + hostIP;
+            Debug.Log($"Reconstructed full IP: {hostIP}");
         }
-        catch (Exception e)
-        {
-            Debug.LogError($"Failed to join: {e.Message}");
-        }
+
+        networkAddress = hostIP;
+        GetComponent<TelepathyTransport>().port = hostPort;
+        StartClient();
     }
     
-    IEnumerator TryConnect(string hostIP, ushort hostPort)
+    private string GetLocalPrefix()
     {
-        int maxAttempts = 5;
-        int attempt = 0;
-
-        while (attempt < maxAttempts)
+        foreach (var ip in Dns.GetHostAddresses(Dns.GetHostName()))
         {
-            if (NetworkClient.active)
+            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
             {
-                Debug.Log("Client already active, shutting down before reconnecting.");
-                NetworkClient.Shutdown();
-                yield return null;
+                string[] parts = ip.ToString().Split('.');
+                if (parts.Length == 4)
+                    return $"{parts[0]}.{parts[1]}.{parts[2]}.";
             }
-
-            // Connect directly using host IP and port
-            NetworkClient.Connect(hostIP);
-
-            float timeout = 1f;
-            float timer = 0f;
-            while (timer < timeout)
-            {
-                if (NetworkClient.isConnected)
-                    yield break; // success
-                timer += Time.deltaTime;
-                yield return null;
-            }
-
-            attempt++;
-            Debug.LogWarning($"Connection attempt {attempt} failed, retrying...");
         }
-
-        Debug.LogError("Failed to connect to host after multiple attempts.");
+        return "192.168.0."; // fallback prefix
     }
     
-    private string GetLocalIPAddress()
+    public string GetLocalIPAddress()
     {
         foreach (var ip in Dns.GetHostAddresses(Dns.GetHostName()))
         {
@@ -119,5 +87,17 @@ public class LockedInNetworkManager : NetworkManager
             }
         }
         return "127.0.0.1"; // fallback
+    }
+    
+    public override void OnClientConnect()
+    {
+        base.OnClientConnect();
+        Debug.Log("✅ Client successfully connected to server!");
+    }
+
+    public override void OnClientDisconnect()
+    {
+        base.OnClientDisconnect();
+        Debug.Log("❌ Client disconnected or failed to connect.");
     }
 }
