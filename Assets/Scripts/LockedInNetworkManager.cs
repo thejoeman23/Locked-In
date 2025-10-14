@@ -26,8 +26,8 @@ public class LockedInNetworkManager : NetworkManager
 
         // Add students
         Student student = conn.identity.GetComponent<Student>();
-        if (student != null && teacher != null)
-            teacher.students.Add(student);
+        //if (student != null && teacher != null)
+            //teacher.StudentAttendance.Add();
     }
 
     public void BeginHost()

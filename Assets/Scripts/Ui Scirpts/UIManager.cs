@@ -4,10 +4,15 @@ using DG.Tweening;
 
 public class UIManager : MonoBehaviour
 {
-    public enum MenuState
+    public enum UIState
     {
         Default,
-        CodeSelection
+        CodeSelection,
+        TeacherScreen,
+        NameSelection,
+        WaitingScreen,
+        ExamScreen,
+        EndScreen
     }
     
     public static UIManager Instance { get; private set; }
@@ -18,8 +23,13 @@ public class UIManager : MonoBehaviour
     [Header("Different Screens")]
     [SerializeField] private GameObject menuScreen;
     [SerializeField] private GameObject codeSelectionScreen;
+    [SerializeField] private GameObject teacherScreen;
+    [SerializeField] private GameObject nameSelectionScreen;
+    [SerializeField] private GameObject waitingScreen;
+    [SerializeField] private GameObject examScreen;
+    [SerializeField] private GameObject endScreen;
     
-    MenuState currentState = MenuState.Default;
+    UIState currentState = UIState.Default;
     GameObject currentScreen;
 
     private void Awake()
@@ -34,13 +44,16 @@ public class UIManager : MonoBehaviour
         DontDestroyOnLoad(gameObject); // survive scene changes
     }
 
-    private void Start() => currentScreen = menuScreen;
+    private void Start()
+    {
+        currentScreen = menuScreen;
+    }
 
-    public void GoToMain() => ChangeState(MenuState.Default);
+    public void GoToMain() => ChangeState(UIState.Default);
     
-    public void GoToCodeSelection() => ChangeState(MenuState.CodeSelection);
+    public void GoToCodeSelection() => ChangeState(UIState.CodeSelection);
     
-    private void ChangeState(MenuState newState)
+    public void ChangeState(UIState newState)
     {
         if (currentState == newState) return;
 
@@ -74,12 +87,17 @@ public class UIManager : MonoBehaviour
         });
     }
     
-    private GameObject GetNewScreenRect(MenuState newState)
+    private GameObject GetNewScreenRect(UIState newState)
     {
         GameObject newScreen = newState switch
         {
-            MenuState.Default => menuScreen,
-            MenuState.CodeSelection => codeSelectionScreen,
+            UIState.Default => menuScreen,
+            UIState.CodeSelection => codeSelectionScreen,
+            UIState.TeacherScreen => teacherScreen,
+            UIState.NameSelection => nameSelectionScreen,
+            UIState.WaitingScreen => waitingScreen,
+            UIState.ExamScreen => examScreen,
+            UIState.EndScreen => endScreen,
             _ => null
         };
 

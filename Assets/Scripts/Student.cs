@@ -10,4 +10,7 @@ public class Student : NetworkBehaviour
     {
         return JsonUtility.ToJson(exam);
     }
+    
+    public void Kick() => NetworkManager.singleton.StopClient();
 }
+   
