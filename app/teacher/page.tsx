@@ -1,15 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import { Exam } from "@/lib/exam-layout";
 import { TeacherInput } from "@/components/teacher-input";
 import { TeacherButton } from "@/components/teacher-button";
 import { useState } from "react";
 
 export default function Home() {
   const [exam, setExam] = useState<Exam>({
-    id: "",
     title: "",
-    status: "setup"
+    status: "setup",
+    content: []
   });
 
   function updateExam(exam: Exam) {
@@ -23,10 +23,4 @@ export default function Home() {
       <TeacherButton exam={exam} updateExam={updateExam} className="w-full max-w-sm" variant="outline"/>
     </main>
   );
-}
-
-export interface Exam {
-    id: string;
-    title: string;
-    status: "setup" | "waiting" | "running" | "ended";
 }

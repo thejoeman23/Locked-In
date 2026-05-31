@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "./ui/button";
-import { Exam } from "@/app/teacher/page";
+import { Exam } from "@/lib/exam-layout";
 
 type Props = React.ComponentProps<typeof Button> & { exam: Exam; updateExam: (exam: Exam) => void; };
 export function TeacherButton({ exam, updateExam, ...props }: Props) {
