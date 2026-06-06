@@ -5,7 +5,7 @@ export interface Student {
     name: string;
     // A per-student exam copy leaves room for personalized ordering/accommodations.
     uniqueExam: Exam;
-    status: "connected" | "disconnected";
+    connected: boolean;
 }
 
 export interface ActiveExam {

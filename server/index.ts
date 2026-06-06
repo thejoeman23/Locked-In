@@ -76,21 +76,62 @@ io.on("connection", (socket) => {
 
     socket.on("exam:join", (examId, name) => {
         const exam = activeExams.get(examId);
-        if (exam) {
-            // Rejoin logic should eventually match on a persistent student id,
-            // not socket.id, because socket ids change after reconnects.
-            const student: Student = {
-                socket: socket.id,
-                name,
-                uniqueExam: exam.exam,
-                status: "connected"
-            };
-            exam.students.push(student);
-            socket.join(examId);
-            io.to(examId).emit("exam:update", exam);
-            console.log(`Registered student ${name} with ID ${socket.id} to exam ${examId}`);
-        } else {
+
+        if (!exam) {
+            socket.emit("exam:notfound");
             console.warn(`Exam with ID ${examId} not found for registration of student ${name}`);
+            return;
+        }
+
+        if (!exam.roster.includes(name)) {
+            socket.emit("exam:namenotfound");
+            return;
+        }
+
+        const existingStudent = exam.students.find((student) => student.name === name);
+
+        if (existingStudent?.connected) {
+            socket.emit("exam:nameinuse");
+            return;
+        }
+
+        socket.join(examId);
+
+        if (existingStudent) {
+            existingStudent.socket = socket.id;
+            existingStudent.connected = true;
+            socket.emit("exam:joined", existingStudent.uniqueExam);
+            io.to(examId).emit("exam:update", exam);
+            console.log(`Reconnected student ${name} with ID ${socket.id} to exam ${examId}`);
+            
+            return;
+        }
+
+        const student: Student = {
+            socket: socket.id,
+            name,
+            uniqueExam: exam.exam,
+            connected: true
+        };
+
+        exam.students.push(student);
+        socket.emit("exam:joined", student.uniqueExam);
+        io.to(examId).emit("exam:update", exam);
+        console.log(`Registered student ${name} with ID ${socket.id} to exam ${examId}`);
+    });
+
+    socket.on("disconnect", () => {
+        for (const [examId, exam] of activeExams) {
+            const student = exam.students.find((student) => student.socket === socket.id);
+
+            if (!student) {
+                continue;
+            }
+
+            student.connected = false;
+            io.to(examId).emit("exam:update", exam);
+            console.log(`Disconnected student ${student.name} from exam ${examId}`);
+            return;
         }
     });
 });
