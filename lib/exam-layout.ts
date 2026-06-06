@@ -1,6 +1,25 @@
+// The socket server and client pages share these types so event payloads stay aligned.
+export interface Student {
+    // Current Socket.IO id. This is useful live, but not stable across reconnects.
+    socket: string;
+    name: string;
+    // A per-student exam copy leaves room for personalized ordering/accommodations.
+    uniqueExam: Exam;
+    status: "connected" | "disconnected";
+}
+
+export interface ActiveExam {
+    // Original exam configuration created by the teacher.
+    exam: Exam;
+    students: Student[];
+    // Expected student names/codes for admission control when that feature lands.
+    roster: string[];
+}
+
 export interface Exam {
     title: string;
-    status: "setup" | "waiting" | "running" | "ended";
+    // High-level lifecycle used by the teacher button and socket events.
+    status: "setup" | "waiting" | "live" | "terminated";
     content: Section[];
 }
 

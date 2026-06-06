@@ -9,6 +9,7 @@ export function BackButton() {
   const pathname = usePathname();
   const router = useRouter();
 
+  // The home screen has nowhere meaningful to go back within the app shell.
   if (pathname === "/") {
     return null;
   }

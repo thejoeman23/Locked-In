@@ -8,13 +8,14 @@ export function TeacherButton({ exam, updateExam, ...props }: Props) {
 
   function handleButton() {
     const newExam = { ...exam }
-    
+
+    // The button is a simple state machine for the teacher's exam lifecycle.
     if (exam.status === "setup") {
       newExam.status = "waiting"
     } else if (exam.status === "waiting") {
-      newExam.status = "running"
-    } else if (exam.status === "running") {
-      newExam.status = "ended"
+      newExam.status = "live"
+    } else if (exam.status === "live") {
+      newExam.status = "terminated"
     }
 
     updateExam(newExam)
@@ -24,8 +25,8 @@ export function TeacherButton({ exam, updateExam, ...props }: Props) {
     <Button onClick={handleButton} {...props}>
       {exam.status === "setup" && "Reveal Code"}
       {exam.status === "waiting" && "Start Exam"}
-      {exam.status === "running" && "End Exam"}
-      {exam.status === "ended" && "Exam Ended"}
+      {exam.status === "live" && "End Exam"}
+      {exam.status === "terminated" && "Exam Terminated"}
     </Button>
   );
 }
