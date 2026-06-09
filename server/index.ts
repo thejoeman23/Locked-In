@@ -1,6 +1,6 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
-import type { ActiveExam, Exam, Student } from "../lib/exam-layout.ts";
+import type { ActiveExam, Exam, Student, TerminationTerms } from "../lib/exam-layout.ts";
 import { generateExamCode } from "../lib/utils.ts";
 
 const httpServer = createServer();
@@ -73,14 +73,24 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("exam:terminate", (examId: string) => {
+    socket.on("exam:terminate", (examId: string, terms: TerminationTerms) => {
         console.log("Terminating exam:", examId);
 
         // Removing the exam prevents new joins and acts as the final lifecycle state.
         activeExams.delete(examId);
-        socket.to(examId).emit("exam:terminated");
+        socket.to(examId).emit("exam:requested");
+        setTimeout(() => {
+            socket.to(examId).emit("exam:terminated", terms);
+        })
 
         console.log(activeExams);
+    });
+
+    socket.on("exam:setup", (examId: string) => {
+        console.log("Returning exam to setup:", examId);
+
+        activeExams.delete(examId);
+        socket.to(examId).emit("exam:setup");
     });
 
     socket.on("exam:preterminate", (examId: string) => {

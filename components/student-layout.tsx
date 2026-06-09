@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ExamDocument } from "@/components/exam-document";
 import { ExamTitle } from "@/components/exam-title";
-import { Exam, StudentStatus } from "@/lib/exam-layout";
+import { Exam, StudentFinishReason, StudentStatus } from "@/lib/exam-layout";
 import { Field, FieldTitle, FieldDescription } from "./ui/field";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -12,14 +12,14 @@ type Props = {
   exam: Exam | null;
   status: StudentStatus;
   errorMessage: string | null;
+  finishReason: StudentFinishReason;
   updateExam: (exam: Exam) => void; 
-  syncExam: () => void; 
   searchForExam: (code: string) => void; 
   joinExam: (name: string) => void; 
   submitExam: () => void 
 };
 
-export function StudentLayout({ exam, status, errorMessage, updateExam, searchForExam, joinExam, submitExam }: Props) {
+export function StudentLayout({ exam, status, errorMessage, finishReason, updateExam, searchForExam, joinExam, submitExam }: Props) {
   const [examCode, setExamCode] = useState("");
   const [studentName, setStudentName] = useState("");
   const errorDisplay = 
@@ -83,9 +83,21 @@ export function StudentLayout({ exam, status, errorMessage, updateExam, searchFo
       {status === "finished" && (
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-semibold">Finished</h1>
-          <p className="text-sm text-muted-foreground">Your exam has been submitted.</p>
+          <p className="text-sm text-muted-foreground">{getFinishedMessage(finishReason)}</p>
         </div>
       )}
     </main>
   );
+}
+
+function getFinishedMessage(reason: StudentFinishReason) {
+  if (reason === "timeout") {
+    return "Time expired. Your exam has ended.";
+  }
+
+  if (reason === "manual") {
+    return "Your teacher ended the exam.";
+  }
+
+  return "Your exam has been submitted.";
 }

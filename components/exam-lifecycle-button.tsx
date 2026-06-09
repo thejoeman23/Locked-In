@@ -1,10 +1,11 @@
 "use client"
 
-import { MenuBarButton } from "@/components/menu-bar-button";
+import { Undo2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Exam } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentProps<typeof MenuBarButton> & {
+type Props = React.ComponentProps<typeof Button> & {
   exam: Exam;
   updateExam: (exam: Exam) => void;
 };
@@ -25,24 +26,59 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
     updateExam(newExam)
   }
 
+  function handleBack() {
+    const newExam = { ...exam }
+
+    if (exam.status === "live") {
+      newExam.status = "waiting"
+    } else if (exam.status === "waiting") {
+      newExam.status = "setup"
+    }
+
+    updateExam(newExam)
+  }
+
+  const canGoBack = exam.status === "waiting" || exam.status === "live";
+
   return (
-    <MenuBarButton
-      onClick={handleButton}
+    <div
       className={cn(
-        "min-w-28 border font-semibold shadow-xs",
-        exam.status === "setup" && "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 hover:text-sky-800",
-        exam.status === "waiting" && "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800",
-        exam.status === "live" && "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:text-amber-900",
-        exam.status === "terminated" && "border-zinc-300 bg-zinc-100 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-500",
+        "inline-flex h-8 overflow-hidden rounded-md border shadow-xs",
+        exam.status === "setup" && "border-sky-200 bg-sky-50 text-sky-700",
+        exam.status === "waiting" && "border-emerald-200 bg-emerald-50 text-emerald-700",
+        exam.status === "live" && "border-amber-200 bg-amber-50 text-amber-800",
+        exam.status === "terminated" && "border-zinc-300 bg-zinc-100 text-zinc-500",
         className
       )}
-      disabled={exam.status === "terminated"}
-      {...props}
     >
-      {exam.status === "setup" && "Reveal Code"}
-      {exam.status === "waiting" && "Start Exam"}
-      {exam.status === "live" && "End Exam"}
-      {exam.status === "terminated" && "Exam Terminated"}
-    </MenuBarButton>
+      {canGoBack && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={exam.status === "live" ? "Return exam to waiting" : "Return exam to setup"}
+          title={exam.status === "live" ? "Return exam to waiting" : "Return exam to setup"}
+          onClick={handleBack}
+          className="h-8 w-8 rounded-none border-0 bg-transparent px-0 text-current shadow-none hover:bg-black/5 hover:text-current"
+        >
+          <Undo2 className="size-4" />
+        </Button>
+      )}
+      {canGoBack && <div className="h-full w-px bg-current/20" />}
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={handleButton}
+        className="h-8 min-w-28 rounded-none border-0 bg-transparent px-3 text-xs font-semibold text-current shadow-none hover:bg-black/5 hover:text-current"
+        disabled={exam.status === "terminated"}
+        {...props}
+      >
+        {exam.status === "setup" && "Reveal Code"}
+        {exam.status === "waiting" && "Start Exam"}
+        {exam.status === "live" && "End Exam"}
+        {exam.status === "terminated" && "Exam Terminated"}
+      </Button>
+    </div>
   );
 }

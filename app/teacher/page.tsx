@@ -11,6 +11,7 @@ export default function Home() {
   // Refs keep connection/session objects available without causing re-renders.
   const socketRef = useRef<Socket | null>(null);
   const examCodeRef = useRef<string | null>(null);
+  const [examCode, setExamCode] = useState<string | null>(null);
   const [exam, setExam] = useState<Exam>({
     title: "",
     status: "setup",
@@ -33,6 +34,7 @@ export default function Home() {
     socket.on("exam:created", (createdExamCode) => {
       console.log("Exam created with code:", createdExamCode);
       examCodeRef.current = createdExamCode;
+      setExamCode(createdExamCode);
     });
 
     return () => {
@@ -40,6 +42,7 @@ export default function Home() {
       socket.disconnect();
       socketRef.current = null;
       examCodeRef.current = null;
+      setExamCode(null);
     };
   }, []);
 
@@ -60,14 +63,27 @@ export default function Home() {
       socketRef.current?.emit("exam:start", examCode, newExam);
     }
 
+    if (currentStatus === "live" && nextStatus === "waiting") {
+      console.log("Setting exam back to waiting...");
+      socketRef.current?.emit("exam:setback", examCode);
+    }
+
+    if (currentStatus === "waiting" && nextStatus === "setup") {
+      console.log("Returning exam to setup...");
+      socketRef.current?.emit("exam:setup", examCode);
+      examCodeRef.current = null;
+      setExamCode(null);
+    }
+
     if (currentStatus === "live" && nextStatus === "terminated") {
       console.log("Terminating exam on server...");
-      socketRef.current?.emit("exam:terminate", examCode);
+      socketRef.current?.emit("exam:terminate", examCode, "manual");
     }
 
     if (
       examCode &&
-      currentStatus === "waiting"
+      currentStatus === "waiting" &&
+      nextStatus !== "setup"
     ) {
       socketRef.current?.emit("exam:update", examCode, newExam);
     }
@@ -76,6 +92,6 @@ export default function Home() {
   }
 
   return (
-    <TeacherLayout exam={exam} updateExam={updateExam} />
+    <TeacherLayout exam={exam} examCode={examCode} updateExam={updateExam} />
   );
 }

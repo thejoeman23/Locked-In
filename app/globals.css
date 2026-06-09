@@ -120,6 +120,9 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    transition-duration: 180ms;
+    transition-property: color, background-color, border-color, opacity, box-shadow, transform, filter;
+    transition-timing-function: ease-out;
   }
   body {
     @apply bg-background text-foreground;
@@ -127,9 +130,36 @@
   html {
     @apply font-sans;
   }
+  button {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08), 0 1px 1px rgb(15 23 42 / 0.04);
+    transform: translateY(0);
+  }
+  button:hover:not(:disabled) {
+    box-shadow: 0 3px 8px rgb(15 23 42 / 0.10), 0 1px 2px rgb(15 23 42 / 0.06);
+    transform: translateY(-1px);
+  }
+  button:active:not(:disabled) {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+    transform: translateY(0);
+  }
 }
 
 @layer components {
+  .app-button {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08), 0 1px 1px rgb(15 23 42 / 0.04);
+    transform: translateY(0);
+  }
+
+  .app-button:hover:not(:disabled) {
+    box-shadow: 0 3px 8px rgb(15 23 42 / 0.10), 0 1px 2px rgb(15 23 42 / 0.06);
+    transform: translateY(-1px);
+  }
+
+  .app-button:active:not(:disabled) {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+    transform: translateY(0);
+  }
+
   .exam-card-motion {
     animation: exam-card-in 180ms ease-out both;
   }

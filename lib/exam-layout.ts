@@ -10,6 +10,8 @@ export interface Student {
 }
 
 export type StudentStatus = "join-code" | "enter-name" | "waiting" | "taking-exam" | "finished";
+export type TerminationTerms = "timeout" | "manual";
+export type StudentFinishReason = "submitted" | TerminationTerms;
 
 export interface ActiveExam {
     // Original exam configuration created by the teacher.

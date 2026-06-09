@@ -2,7 +2,7 @@
 
 import { StudentLayout } from "@/components/student-layout";
 
-import { Exam, StudentStatus } from "@/lib/exam-layout";
+import { Exam, StudentFinishReason, StudentStatus, TerminationTerms } from "@/lib/exam-layout";
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -16,6 +16,7 @@ export default function Home() {
   const examRef = useRef<Exam | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<StudentStatus>("join-code");
+  const [finishReason, setFinishReason] = useState<StudentFinishReason>("submitted");
   const [exam, setExam] = useState<Exam | null>(null);
 
   function setStudentError(message: string | null) {
@@ -40,15 +41,10 @@ export default function Home() {
       console.log("Connected to socket:", socket.id);
     });
 
+    // Error events.
     socket.on("connect_error", (error) => {
       setStudentError("Unable to connect to the exam server. Please check your connection and try again.");
       console.error("Exam socket connection failed:", error.message);
-    });
-
-    socket.on("exam:found", () => {
-      setStudentError(null);
-      setStatus("enter-name");
-      console.log("Exam found with code:", examCodeRef.current);
     });
 
     socket.on("exam:notfound", () => {
@@ -67,12 +63,33 @@ export default function Home() {
       console.warn("Name already in use for exam with code:", examCodeRef.current);
     });
 
+    // Chronological exam flow.
+    socket.on("exam:found", () => {
+      setStudentError(null);
+      setStatus("enter-name");
+      console.log("Exam found with code:", examCodeRef.current);
+    });
+
     socket.on("exam:joined", () => {
       setStudentError(null);
       setStatus("waiting");
       console.log("Joined exam with unique code:", examCodeRef.current);
     });
 
+    socket.on("exam:started", (uniqueExam: Exam) => {
+      setStudentError(null);
+      setExam(uniqueExam);
+      setStatus("taking-exam");
+      console.log("Exam started:", JSON.stringify(uniqueExam));
+    });
+
+    socket.on("exam:submitted", () => {
+      setFinishReason("submitted");
+      setStatus("finished");
+      console.log("Exam submitted");
+    });
+
+    // Sync/support events.
     socket.on("exam:requested", () => {
       if (statusRef.current !== "taking-exam") return;
       if (!examRef.current) {
@@ -83,25 +100,22 @@ export default function Home() {
       socket.emit("exam:sync", examRef.current, examCodeRef.current);
     });
 
-    socket.on("exam:started", (uniqueExam: Exam) => {
-      setStudentError(null);
-      setExam(uniqueExam);
-      setStatus("taking-exam");
-      console.log("Exam started:", JSON.stringify(uniqueExam));
-    });
-
     socket.on("exam:synced", () => {
       console.log("Exam synced");
     });
 
-    socket.on("exam:submitted", () => {
-      setStatus("finished");
-      console.log("Exam submitted");
-    });
-
-    socket.on("exam:terminated", () => {
+    // Termination/reset events.
+    socket.on("exam:terminated", (terms: TerminationTerms) => {
+      setFinishReason(terms);
       setStatus("finished");
       console.log("Exam terminated");
+    });
+
+    socket.on("exam:setup", () => {
+      setStatus("join-code");
+      setExam(null);
+      setStudentError("The teacher returned the exam to setup. Please wait for a new code.");
+      console.log("Exam returned to setup");
     });
 
     socket.on("exam:preterminated", () => {
@@ -126,6 +140,19 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(syncExam, 30000); // Sync every 30 seconds.
+    function syncExam() {
+      if (!exam) {
+        return;
+      }
+      console.log("Syncing exam with code:", examCodeRef.current);
+      socketRef.current?.emit("exam:sync", exam, examCodeRef.current);
+    }
+
+    return () => clearInterval(interval);
+  }, [exam]);
+
   function searchForExam(code: string) {
     setStudentError(null);
     examCodeRef.current = code;
@@ -137,15 +164,6 @@ export default function Home() {
     setStudentError(null);
     console.log(`Attempting to join exam with code: ${examCodeRef.current} and name: ${name}`);
     socketRef.current?.emit("exam:join", examCodeRef.current, name);
-  }
-
-  function syncExam() {
-    if (!exam) {
-      console.warn("No exam to sync");
-      return;
-    }
-    console.log("Syncing exam with code:", examCodeRef.current);
-    socketRef.current?.emit("exam:sync", exam, examCodeRef.current);
   }
 
   function submitExam() {
@@ -166,8 +184,8 @@ export default function Home() {
       exam={exam}
       status={status}
       errorMessage={errorMessage}
+      finishReason={finishReason}
       updateExam={updateExam}
-      syncExam={syncExam}
       searchForExam={searchForExam}
       joinExam={joinExam}
       submitExam={submitExam}
