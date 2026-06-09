@@ -59,9 +59,6 @@ io.on("connection", (socket) => {
         if (activeExam) {
             if (latestExam) {
                 activeExam.exam = latestExam;
-                activeExam.students.forEach((student) => {
-                    student.uniqueExam = latestExam;
-                });
             }
 
             if (!activeExam.exam) {
@@ -70,7 +67,7 @@ io.on("connection", (socket) => {
             }
 
             console.log("Exam started:", JSON.stringify(activeExam.exam));
-            io.to(examId).emit("exam:started", { exam: activeExam.exam });
+            io.to(examId).emit("exam:started", activeExam.exam);
         } else {
             console.warn(`Exam with ID ${examId} not found for starting`);
         }
@@ -164,23 +161,6 @@ io.on("connection", (socket) => {
         socket.emit("exam:joined");
         io.to(examId).emit("exam:update", activeExam);
         console.log(`Registered student ${name} with ID ${socket.id} to exam ${examId}`);
-    });
-
-    socket.on("exam:load", (examId: string) => {
-        const activeExam = activeExams.get(examId);
-        if (!activeExam) {
-            socket.emit("exam:notfound");
-            console.warn(`Exam with ID ${examId} not found for student load`);
-            return;
-        }
-
-        const student = activeExam.students.find((student) => student.socket === socket.id);
-        if (!student) {
-            console.warn(`Student with socket ID ${socket.id} not found in exam ${examId} for load`);
-            return;
-        }
-
-        socket.emit("exam:loaded", { exam: student.uniqueExam ?? activeExam.exam });
     });
 
     socket.on("exam:sync", (uniqueExam: Exam, examID: string) => {

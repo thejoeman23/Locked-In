@@ -8,20 +8,12 @@ import { io, Socket } from "socket.io-client";
 
 const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3001";
 
-type ExamSocketPayload = Exam | { exam?: Exam } | undefined;
-
-function readExamPayload(payload: ExamSocketPayload) {
-  if (!payload) {
-    return null;
-  }
-
-  return "content" in payload ? payload : payload.exam ?? null;
-}
-
 export default function Home() {
   const socketRef = useRef<Socket | null>(null);
   const examCodeRef = useRef<string | null>(null);
   const errorAlertRef = useRef<string | null>(null);
+  const statusRef = useRef<StudentStatus>("join-code");
+  const examRef = useRef<Exam | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<StudentStatus>("join-code");
   const [exam, setExam] = useState<Exam | null>(null);
@@ -30,6 +22,14 @@ export default function Home() {
     errorAlertRef.current = message;
     setErrorMessage(message);
   }
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
+  useEffect(() => {
+    examRef.current = exam;
+  }, [exam]);
 
   useEffect(() => {
     const socket = io(socketUrl);
@@ -73,28 +73,21 @@ export default function Home() {
       console.log("Joined exam with unique code:", examCodeRef.current);
     });
 
-    function receiveStartedExam(payload: ExamSocketPayload) {
-      const uniqueExam = readExamPayload(payload);
-
-      if (!uniqueExam) {
-        setStudentError("The exam started, but no exam content was received. Trying to load it again.");
-        console.warn("Exam started without an exam payload:", payload);
-        socket.emit("exam:load", examCodeRef.current);
+    socket.on("exam:requested", () => {
+      if (statusRef.current !== "taking-exam") return;
+      if (!examRef.current) {
+        console.warn("Exam requested but no exam is currently loaded");
         return;
       }
+      console.log("Exam content requested by teacher, syncing current exam state");
+      socket.emit("exam:sync", examRef.current, examCodeRef.current);
+    });
 
+    socket.on("exam:started", (uniqueExam: Exam) => {
       setStudentError(null);
       setExam(uniqueExam);
       setStatus("taking-exam");
       console.log("Exam started:", JSON.stringify(uniqueExam));
-    }
-
-    socket.on("exam:started", (payload: ExamSocketPayload) => {
-      receiveStartedExam(payload);
-    });
-
-    socket.on("exam:loaded", (payload: ExamSocketPayload) => {
-      receiveStartedExam(payload);
     });
 
     socket.on("exam:synced", () => {
