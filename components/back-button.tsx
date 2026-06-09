@@ -21,7 +21,7 @@ export function BackButton() {
       onClick={() => router.back()}
       variant="outline"
       size="icon"
-      className="absolute top-4 left-4"
+      className="absolute top-4 left-4 z-50"
     >
       <ArrowLeft className="h-4 w-4" />
     </Button>

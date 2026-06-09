@@ -1,8 +1,7 @@
 "use client";
 
+import { TeacherLayout } from "@/components/teacher-layout";
 import { Exam } from "@/lib/exam-layout";
-import { TeacherInput } from "@/components/teacher-input";
-import { TeacherButton } from "@/components/teacher-button";
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -67,9 +66,6 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4">
-      <TeacherInput exam={exam} updateExam={updateExam} />
-      <TeacherButton exam={exam} updateExam={updateExam} className="w-full max-w-sm" variant="outline"/>
-    </main>
+    <TeacherLayout exam={exam} updateExam={updateExam} />
   );
 }

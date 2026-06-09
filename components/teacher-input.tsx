@@ -1,11 +1,11 @@
 "use client"
 
-import { Field, FieldDescription, FieldTitle } from "./ui/field";
 import { Input } from "./ui/input";
 import { Exam } from "@/lib/exam-layout";
+import { cn } from "@/lib/utils";
 
-type Props = { exam: Exam; updateExam: (exam: Exam) => void };
-export function TeacherInput({ exam, updateExam }: Props) {
+type Props = React.ComponentProps<typeof Input> & { exam: Exam; updateExam: (exam: Exam) => void };
+export function TeacherInput({ exam, updateExam, className, ...props }: Props) {
 
   function onInputChanged(e: React.ChangeEvent<HTMLInputElement>) {
     // Keep parent state as the source of truth; this component only edits the title.
@@ -15,10 +15,12 @@ export function TeacherInput({ exam, updateExam }: Props) {
   }
 
   return (
-    <Field className="w-500 max-w-sm">
-      <FieldTitle>Test Text</FieldTitle>
-      <FieldDescription>Enter your test text.</FieldDescription>
-      <Input onBlur={onInputChanged} placeholder="text" />
-    </Field>
+    <Input
+      defaultValue={exam.title}
+      onBlur={onInputChanged}
+      placeholder="Untitled exam"
+      className={cn("h-8 border-transparent bg-transparent px-2 text-base font-medium shadow-none hover:border-border focus-visible:border-ring", className)}
+      {...props}
+    />
   );
 }

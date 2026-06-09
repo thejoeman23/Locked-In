@@ -25,13 +25,15 @@ export interface Exam {
 
 export interface Section {
     title: string;
-    items: Question[];
+    items: ExamQuestion[];
 }
 
 export interface Question {
     text: string;
     worth: number;
 }
+
+export type ExamQuestion = MMCQuestion | SAQuestion | UnderlineQuestion;
 
 export interface MMCQuestion extends Question {
     options: string[];
@@ -44,6 +46,7 @@ export interface SAQuestion extends Question {
 }
 
 export interface UnderlineQuestion extends Question {
+    passage: string;
     answer: number[] | null;
     correctOptions: number[];
 }

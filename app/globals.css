@@ -128,3 +128,46 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  .exam-card-motion {
+    animation: exam-card-in 180ms ease-out both;
+  }
+
+  .exam-card-motion[data-deleting="true"] {
+    animation: exam-card-out 180ms ease-in both;
+    pointer-events: none;
+  }
+}
+
+@keyframes exam-card-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes exam-card-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* @layer utilities {
+  input::-webkit-inner-spin-button,
+  input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+} */
