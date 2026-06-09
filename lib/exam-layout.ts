@@ -6,6 +6,7 @@ export interface Student {
     // A per-student exam copy leaves room for personalized ordering/accommodations.
     uniqueExam: Exam;
     connected: boolean;
+    completed: boolean;
 }
 
 export interface ActiveExam {

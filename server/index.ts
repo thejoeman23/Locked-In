@@ -1,6 +1,6 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
-import type { ActiveExam, Student } from "../lib/exam-layout.ts";
+import type { ActiveExam, Exam, Student } from "../lib/exam-layout.ts";
 import { generateExamCode } from "../lib/utils.ts";
 
 const httpServer = createServer();
@@ -19,11 +19,46 @@ const activeExams: Map<string, ActiveExam> = new Map();
 io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
-    socket.on("exam:update", (exam) => {
-        console.log("Exam updated:", exam);
+    socket.on("exam:sync", (uniqueExam: Exam, examID: string) => {
+        const activeExam = activeExams.get(examID);
+        if (!activeExam) {
+            console.warn(`Exam with ID ${examID} not found for update`);
+            return;
+        }
+
+        const student = activeExam.students.find((student) => student.socket === socket.id);
+        if (!student) {
+            console.warn(`Student with socket ID ${socket.id} not found in exam ${examID} for update`);
+            return;
+        }
+        
+        // This simple implementation trusts the client to send a valid exam structure.
+        // A more robust implementation would validate/sanitize this input and handle errors.
+        student.uniqueExam = uniqueExam;
+        socket.emit("exam:synced");
+        console.log(`Received exam update from student ${student.name} in exam ${examID}`);
     });
 
-    socket.on("exam:terminate", (examId) => {
+    socket.on("exam:submit", (uniqueExam: Exam, examID: string) => {
+        const activeExam = activeExams.get(examID);
+        if (!activeExam) {
+            console.warn(`Exam with ID ${examID} not found for submission`);
+            return;
+        }
+
+        const student = activeExam.students.find((student) => student.socket === socket.id);
+        if (!student) {
+            console.warn(`Student with socket ID ${socket.id} not found in exam ${examID} for submission`);
+            return;
+        }
+
+        student.completed = true;
+
+        // In a real implementation, you'd likely want to persist this submission and trigger grading.
+        console.log(`Received exam submission from student ${student.name} in exam ${examID}`);
+    });
+
+    socket.on("exam:terminate", (examId: string) => {
         console.log("Terminating exam:", examId);
 
         // Removing the exam prevents new joins and acts as the final lifecycle state.
@@ -31,7 +66,7 @@ io.on("connection", (socket) => {
         socket.to(examId).emit("exam:terminated");
     });
 
-    socket.on("exam:start", (examId) => {
+    socket.on("exam:start", (examId: string) => {
         console.log("Starting exam:", examId);
         const exam = activeExams.get(examId);
         if (exam) {
@@ -41,7 +76,7 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("exam:create", (exam, roster) => {
+    socket.on("exam:create", (exam: Exam, roster: string[]) => {
         console.log("Creating exam:", exam);
 
         // The generated code is both the student-facing join code and socket room id.
@@ -64,31 +99,31 @@ io.on("connection", (socket) => {
         );
     });
 
-    socket.on("exam:search", (examId) => {
+    socket.on("exam:search", (examId: string) => {
         // Lets the student page validate a code before committing to a join.
-        const exam = activeExams.get(examId);
-        if (exam) {
-            socket.emit("exam:found", exam);
+        const activeExam = activeExams.get(examId);
+        if (activeExam) {
+            socket.emit("exam:found");
         } else {
             socket.emit("exam:notfound");
         }
     });
 
-    socket.on("exam:join", (examId, name) => {
-        const exam = activeExams.get(examId);
+    socket.on("exam:join", (examId: string, name: string) => {
+        const activeExam = activeExams.get(examId);
 
-        if (!exam) {
+        if (!activeExam) {
             socket.emit("exam:notfound");
             console.warn(`Exam with ID ${examId} not found for registration of student ${name}`);
             return;
         }
 
-        if (!exam.roster.includes(name)) {
-            socket.emit("exam:namenotfound");
+        if (!activeExam.roster.includes(name)) {
+            socket.emit("exam:invalidname");
             return;
         }
 
-        const existingStudent = exam.students.find((student) => student.name === name);
+        const existingStudent = activeExam.students.find((student) => student.name === name);
 
         if (existingStudent?.connected) {
             socket.emit("exam:nameinuse");
@@ -101,7 +136,7 @@ io.on("connection", (socket) => {
             existingStudent.socket = socket.id;
             existingStudent.connected = true;
             socket.emit("exam:joined", existingStudent.uniqueExam);
-            io.to(examId).emit("exam:update", exam);
+            io.to(examId).emit("exam:update", activeExam);
             console.log(`Reconnected student ${name} with ID ${socket.id} to exam ${examId}`);
             
             return;
@@ -110,26 +145,26 @@ io.on("connection", (socket) => {
         const student: Student = {
             socket: socket.id,
             name,
-            uniqueExam: exam.exam,
+            uniqueExam: activeExam.exam,
             connected: true
         };
 
-        exam.students.push(student);
+        activeExam.students.push(student);
         socket.emit("exam:joined", student.uniqueExam);
-        io.to(examId).emit("exam:update", exam);
+        io.to(examId).emit("exam:update", activeExam);
         console.log(`Registered student ${name} with ID ${socket.id} to exam ${examId}`);
     });
 
     socket.on("disconnect", () => {
-        for (const [examId, exam] of activeExams) {
-            const student = exam.students.find((student) => student.socket === socket.id);
+        for (const [examId, activeExam] of activeExams) {
+            const student = activeExam.students.find((student) => student.socket === socket.id);
 
             if (!student) {
                 continue;
             }
 
             student.connected = false;
-            io.to(examId).emit("exam:update", exam);
+            io.to(examId).emit("exam:update", activeExam);
             console.log(`Disconnected student ${student.name} from exam ${examId}`);
             return;
         }
