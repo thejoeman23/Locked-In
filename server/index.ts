@@ -19,63 +19,7 @@ const activeExams: Map<string, ActiveExam> = new Map();
 io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
-    socket.on("exam:sync", (uniqueExam: Exam, examID: string) => {
-        const activeExam = activeExams.get(examID);
-        if (!activeExam) {
-            console.warn(`Exam with ID ${examID} not found for update`);
-            return;
-        }
-
-        const student = activeExam.students.find((student) => student.socket === socket.id);
-        if (!student) {
-            console.warn(`Student with socket ID ${socket.id} not found in exam ${examID} for update`);
-            return;
-        }
-        
-        // This simple implementation trusts the client to send a valid exam structure.
-        // A more robust implementation would validate/sanitize this input and handle errors.
-        student.uniqueExam = uniqueExam;
-        socket.emit("exam:synced");
-        console.log(`Received exam update from student ${student.name} in exam ${examID}`);
-    });
-
-    socket.on("exam:submit", (uniqueExam: Exam, examID: string) => {
-        const activeExam = activeExams.get(examID);
-        if (!activeExam) {
-            console.warn(`Exam with ID ${examID} not found for submission`);
-            return;
-        }
-
-        const student = activeExam.students.find((student) => student.socket === socket.id);
-        if (!student) {
-            console.warn(`Student with socket ID ${socket.id} not found in exam ${examID} for submission`);
-            return;
-        }
-
-        student.completed = true;
-
-        // In a real implementation, you'd likely want to persist this submission and trigger grading.
-        console.log(`Received exam submission from student ${student.name} in exam ${examID}`);
-    });
-
-    socket.on("exam:terminate", (examId: string) => {
-        console.log("Terminating exam:", examId);
-
-        // Removing the exam prevents new joins and acts as the final lifecycle state.
-        activeExams.delete(examId);
-        socket.to(examId).emit("exam:terminated");
-    });
-
-    socket.on("exam:start", (examId: string) => {
-        console.log("Starting exam:", examId);
-        const exam = activeExams.get(examId);
-        if (exam) {
-            socket.to(examId).emit("exam:started");
-        } else {
-            console.warn(`Exam with ID ${examId} not found for starting`);
-        }
-    });
-
+    // Teacher events.
     socket.on("exam:create", (exam: Exam, roster: string[]) => {
         console.log("Creating exam:", exam);
 
@@ -99,6 +43,72 @@ io.on("connection", (socket) => {
         );
     });
 
+    socket.on("exam:update", (examId: string, exam: Exam) => {
+        const activeExam = activeExams.get(examId);
+        if (!activeExam) {
+            console.warn(`Exam with ID ${examId} not found for teacher update`);
+            return;
+        }
+
+        activeExam.exam = exam;
+    });
+
+    socket.on("exam:start", (examId: string, latestExam?: Exam) => {
+        console.log("Starting exam:", examId);
+        const activeExam = activeExams.get(examId);
+        if (activeExam) {
+            if (latestExam) {
+                activeExam.exam = latestExam;
+                activeExam.students.forEach((student) => {
+                    student.uniqueExam = latestExam;
+                });
+            }
+
+            if (!activeExam.exam) {
+                console.warn(`Exam with ID ${examId} has no exam payload to start`);
+                return;
+            }
+
+            console.log("Exam started:", JSON.stringify(activeExam.exam));
+            io.to(examId).emit("exam:started", { exam: activeExam.exam });
+        } else {
+            console.warn(`Exam with ID ${examId} not found for starting`);
+        }
+    });
+
+    socket.on("exam:terminate", (examId: string) => {
+        console.log("Terminating exam:", examId);
+
+        // Removing the exam prevents new joins and acts as the final lifecycle state.
+        activeExams.delete(examId);
+        socket.to(examId).emit("exam:terminated");
+
+        console.log(activeExams);
+    });
+
+    socket.on("exam:preterminate", (examId: string) => {
+        console.log("Pre-terminating exam:", examId);
+        const activeExam = activeExams.get(examId);
+        if (activeExam) {
+            activeExam.exam.status = "terminated";
+            io.to(examId).emit("exam:preterminated");
+        } else {
+            console.warn(`Exam with ID ${examId} not found for pre-termination`);
+        }
+    });
+
+    socket.on("exam:setback", (examId: string) => {
+        console.log("Setting back exam:", examId);
+        const activeExam = activeExams.get(examId);
+        if (activeExam) {
+            activeExam.exam.status = "waiting";
+            io.to(examId).emit("exam:setback", activeExam.exam);
+        } else {
+            console.warn(`Exam with ID ${examId} not found for setback`);
+        }
+    });
+
+    // Student events.
     socket.on("exam:search", (examId: string) => {
         // Lets the student page validate a code before committing to a join.
         const activeExam = activeExams.get(examId);
@@ -135,7 +145,7 @@ io.on("connection", (socket) => {
         if (existingStudent) {
             existingStudent.socket = socket.id;
             existingStudent.connected = true;
-            socket.emit("exam:joined", existingStudent.uniqueExam);
+            socket.emit("exam:joined");
             io.to(examId).emit("exam:update", activeExam);
             console.log(`Reconnected student ${name} with ID ${socket.id} to exam ${examId}`);
             
@@ -146,13 +156,71 @@ io.on("connection", (socket) => {
             socket: socket.id,
             name,
             uniqueExam: activeExam.exam,
-            connected: true
+            connected: true,
+            completed: false
         };
 
         activeExam.students.push(student);
-        socket.emit("exam:joined", student.uniqueExam);
+        socket.emit("exam:joined");
         io.to(examId).emit("exam:update", activeExam);
         console.log(`Registered student ${name} with ID ${socket.id} to exam ${examId}`);
+    });
+
+    socket.on("exam:load", (examId: string) => {
+        const activeExam = activeExams.get(examId);
+        if (!activeExam) {
+            socket.emit("exam:notfound");
+            console.warn(`Exam with ID ${examId} not found for student load`);
+            return;
+        }
+
+        const student = activeExam.students.find((student) => student.socket === socket.id);
+        if (!student) {
+            console.warn(`Student with socket ID ${socket.id} not found in exam ${examId} for load`);
+            return;
+        }
+
+        socket.emit("exam:loaded", { exam: student.uniqueExam ?? activeExam.exam });
+    });
+
+    socket.on("exam:sync", (uniqueExam: Exam, examID: string) => {
+        const activeExam = activeExams.get(examID);
+        if (!activeExam) {
+            console.warn(`Exam with ID ${examID} not found for update`);
+            return;
+        }
+
+        const student = activeExam.students.find((student) => student.socket === socket.id);
+        if (!student) {
+            console.warn(`Student with socket ID ${socket.id} not found in exam ${examID} for update`);
+            return;
+        }
+        
+        // This simple implementation trusts the client to send a valid exam structure.
+        // A more robust implementation would validate/sanitize this input and handle errors.
+        student.uniqueExam = uniqueExam;
+        socket.emit("exam:synced");
+        console.log(`Received exam update from student ${student.name} in exam ${examID}`);
+    });
+
+    socket.on("exam:submit", (uniqueExam: Exam, examID: string) => {
+        const activeExam = activeExams.get(examID);
+        if (!activeExam) {
+            console.warn(`Exam with ID ${examID} not found for submission`);
+            return;
+        }
+
+        const student = activeExam.students.find((student) => student.socket === socket.id);
+        if (!student) {
+            console.warn(`Student with socket ID ${socket.id} not found in exam ${examID} for submission`);
+            return;
+        }
+
+        student.completed = true;
+        socket.emit("exam:submitted");
+
+        // In a real implementation, you'd likely want to persist this submission and trigger grading.
+        console.log(`Received exam submission from student ${student.name} in exam ${examID}`);
     });
 
     socket.on("disconnect", () => {

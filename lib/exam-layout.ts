@@ -9,6 +9,8 @@ export interface Student {
     completed: boolean;
 }
 
+export type StudentStatus = "join-code" | "enter-name" | "waiting" | "taking-exam" | "finished";
+
 export interface ActiveExam {
     // Original exam configuration created by the teacher.
     exam: Exam;

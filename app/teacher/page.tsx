@@ -45,21 +45,31 @@ export default function Home() {
 
   function updateExam(newExam: Exam) {
     console.log("Updating exam:", newExam);
+    const currentStatus = exam.status;
+    const nextStatus = newExam.status;
+    const examCode = examCodeRef.current;
 
     // Status transitions are the client-side trigger for server exam events.
-    if (exam.status === "setup" && newExam.status === "waiting") {
+    if (currentStatus === "setup" && nextStatus === "waiting") {
       console.log("Creating exam on server...");
-      socketRef.current?.emit("exam:create", newExam, []);
+      socketRef.current?.emit("exam:create", newExam, ["jonathan", "alice", "bob"]);
     }
 
-    if (exam.status === "waiting" && newExam.status === "live") {
+    if (currentStatus === "waiting" && nextStatus === "live") {
       console.log("Starting exam on server...");
-      socketRef.current?.emit("exam:start", examCodeRef.current);
+      socketRef.current?.emit("exam:start", examCode, newExam);
     }
 
-    if (exam.status === "live" && newExam.status === "terminated") {
+    if (currentStatus === "live" && nextStatus === "terminated") {
       console.log("Terminating exam on server...");
-      socketRef.current?.emit("exam:terminate", examCodeRef.current);
+      socketRef.current?.emit("exam:terminate", examCode);
+    }
+
+    if (
+      examCode &&
+      currentStatus === "waiting"
+    ) {
+      socketRef.current?.emit("exam:update", examCode, newExam);
     }
 
     setExam(newExam);
