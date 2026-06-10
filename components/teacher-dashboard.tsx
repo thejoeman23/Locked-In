@@ -3,7 +3,9 @@
 import { Circle, CircleCheck, Clock3, CirclePlus } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { DeleteButton } from "@/components/delete-button";
+import { RosterPasteBox } from "@/components/roster-paste-box";
 import type { Exam, Student } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
@@ -15,10 +17,11 @@ type Props = {
   roster: string[];
   students: Student[];
   onAddRosterName: (name: string) => void;
+  onAddRosterNames: (names: string[]) => void;
   onRemoveRosterName: (name: string) => void;
 };
 
-export function TeacherDashboard({ examStatus, roster, students, onAddRosterName, onRemoveRosterName }: Props) {
+export function TeacherDashboard({ examStatus, roster, students, onAddRosterName, onAddRosterNames, onRemoveRosterName }: Props) {
   const [studentName, setStudentName] = useState("");
   const displayStudents = getDisplayStudents(roster, students, examStatus);
 
@@ -76,7 +79,12 @@ export function TeacherDashboard({ examStatus, roster, students, onAddRosterName
         </Button>
       </div>
 
-      <div className="mt-5 min-h-24 rounded-md border bg-muted/20 p-3">
+      <p className="my-2 text-center text-xs text-muted-foreground">OR</p>
+      <RosterPasteBox onPasteRoster={onAddRosterNames} />
+
+      <Separator className="my-5" />
+
+      <div className="min-h-24 rounded-md border bg-muted/20 p-3">
         {displayStudents.length === 0 ? (
           <p className="text-sm text-muted-foreground">No students added yet.</p>
         ) : (

@@ -18,10 +18,11 @@ type Props = {
   students: Student[];
   updateExam: (exam: Exam) => void;
   onAddRosterName: (name: string) => void;
+  onAddRosterNames: (names: string[]) => void;
   onRemoveRosterName: (name: string) => void;
 };
 
-export function TeacherLayout({ exam, examCode, roster, students, updateExam, onAddRosterName, onRemoveRosterName }: Props) {
+export function TeacherLayout({ exam, examCode, roster, students, updateExam, onAddRosterName, onAddRosterNames, onRemoveRosterName }: Props) {
   const [copiedExamCode, setCopiedExamCode] = useState(false);
   const shouldShowExamCode = examCode && (exam.status === "waiting" || exam.status === "live");
 
@@ -106,6 +107,7 @@ export function TeacherLayout({ exam, examCode, roster, students, updateExam, on
           roster={roster}
           students={students}
           onAddRosterName={onAddRosterName}
+          onAddRosterNames={onAddRosterNames}
           onRemoveRosterName={onRemoveRosterName}
         />
       </section>

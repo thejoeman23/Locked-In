@@ -106,7 +106,7 @@ export default function Home() {
   }
 
   function addRosterName(name: string) {
-    const trimmedName = name.trim();
+    const trimmedName = normalizeStudentName(name);
 
     if (!trimmedName) {
       return;
@@ -126,18 +126,40 @@ export default function Home() {
     }
   }
 
-  function removeRosterName(name: string) {
-    const nextRoster = rosterRef.current.filter((studentName) => studentName !== name);
+  function addRosterNames(names: string[]) {
+    const nextNames = names.map(normalizeStudentName).filter(Boolean);
+
+    if (nextNames.length === 0) {
+      return;
+    }
+
+    const nextRoster = Array.from(new Set([...rosterRef.current, ...nextNames]));
     const currentExamCode = examCodeRef.current ?? examCode;
-    const student = students.find((student) => student.name === name);
+
+    rosterRef.current = nextRoster;
+    setRoster(nextRoster);
+
+    if (currentExamCode) {
+      console.log("Updating roster on server:", currentExamCode, nextRoster);
+      socketRef.current?.emit("exam:updateroster", currentExamCode, nextRoster);
+    } else {
+      console.log("Roster updated locally before exam code exists:", nextRoster);
+    }
+  }
+
+  function removeRosterName(name: string) {
+    const normalizedName = normalizeStudentName(name);
+    const nextRoster = rosterRef.current.filter((studentName) => studentName !== normalizedName);
+    const currentExamCode = examCodeRef.current ?? examCode;
+    const student = students.find((student) => student.name === normalizedName);
 
     rosterRef.current = nextRoster;
     setRoster(nextRoster);
 
     if (currentExamCode) {
       if (student?.connected) {
-        console.log("Kicking student from exam:", currentExamCode, name);
-        socketRef.current?.emit("exam:kickstudent", currentExamCode, name);
+        console.log("Kicking student from exam:", currentExamCode, normalizedName);
+        socketRef.current?.emit("exam:kickstudent", currentExamCode, normalizedName);
       }
 
       console.log("Updating roster on server:", currentExamCode, nextRoster);
@@ -155,7 +177,12 @@ export default function Home() {
       students={students}
       updateExam={updateExam}
       onAddRosterName={addRosterName}
+      onAddRosterNames={addRosterNames}
       onRemoveRosterName={removeRosterName}
     />
   );
+}
+
+function normalizeStudentName(name: string) {
+  return name.trim().replace(/\s+/g, " ").toUpperCase();
 }

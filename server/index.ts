@@ -62,29 +62,30 @@ io.on("connection", (socket) => {
         }
 
         socket.join(examId);
-        activeExam.roster = Array.from(new Set(roster.map((name) => name.trim()).filter(Boolean)));
+        activeExam.roster = Array.from(new Set(roster.map(normalizeStudentName).filter(Boolean)));
         io.to(examId).emit("exam:update", activeExam);
         console.log(`Updated roster for exam ${examId}:`, activeExam.roster);
     });
 
     socket.on("exam:kickstudent", (examId: string, name: string) => {
+        const normalizedName = normalizeStudentName(name);
         const activeExam = activeExams.get(examId);
         if (!activeExam) {
-            console.warn(`Exam with ID ${examId} not found for kicking student ${name}`);
+            console.warn(`Exam with ID ${examId} not found for kicking student ${normalizedName}`);
             return;
         }
 
-        const student = activeExam.students.find((student) => student.name === name);
+        const student = activeExam.students.find((student) => student.name === normalizedName);
         if (!student) {
-            console.warn(`Student ${name} not found in exam ${examId} for kick`);
+            console.warn(`Student ${normalizedName} not found in exam ${examId} for kick`);
             return;
         }
 
         io.to(student.socket).emit("exam:kicked");
         io.sockets.sockets.get(student.socket)?.leave(examId);
-        activeExam.students = activeExam.students.filter((student) => student.name !== name);
+        activeExam.students = activeExam.students.filter((student) => student.name !== normalizedName);
         io.to(examId).emit("exam:update", activeExam);
-        console.log(`Kicked student ${name} from exam ${examId}`);
+        console.log(`Kicked student ${normalizedName} from exam ${examId}`);
     });
 
     socket.on("exam:start", (examId: string, latestExam?: Exam) => {
@@ -166,20 +167,21 @@ io.on("connection", (socket) => {
     });
 
     socket.on("exam:join", (examId: string, name: string) => {
+        const normalizedName = normalizeStudentName(name);
         const activeExam = activeExams.get(examId);
 
         if (!activeExam) {
             socket.emit("exam:notfound");
-            console.warn(`Exam with ID ${examId} not found for registration of student ${name}`);
+            console.warn(`Exam with ID ${examId} not found for registration of student ${normalizedName}`);
             return;
         }
 
-        if (!activeExam.roster.includes(name)) {
+        if (!activeExam.roster.includes(normalizedName)) {
             socket.emit("exam:invalidname");
             return;
         }
 
-        const existingStudent = activeExam.students.find((student) => student.name === name);
+        const existingStudent = activeExam.students.find((student) => student.name === normalizedName);
 
         if (existingStudent?.connected) {
             socket.emit("exam:nameinuse");
@@ -197,7 +199,7 @@ io.on("connection", (socket) => {
             existingStudent.socket = socket.id;
             existingStudent.connected = true;
             io.to(examId).emit("exam:update", activeExam);
-            console.log(`Reconnected student ${name} with ID ${socket.id} to exam ${examId}`);
+            console.log(`Reconnected student ${normalizedName} with ID ${socket.id} to exam ${examId}`);
             
             if (activeExam.exam.status === "live") {
                 socket.emit("exam:started", existingStudent.uniqueExam);
@@ -210,7 +212,7 @@ io.on("connection", (socket) => {
 
         const student: Student = {
             socket: socket.id,
-            name,
+            name: normalizedName,
             uniqueExam: activeExam.exam,
             connected: true,
             completed: false
@@ -225,7 +227,7 @@ io.on("connection", (socket) => {
             socket.emit("exam:joined");
         }
 
-        console.log(`Registered student ${name} with ID ${socket.id} to exam ${examId}`);
+        console.log(`Registered student ${normalizedName} with ID ${socket.id} to exam ${examId}`);
     });
 
     socket.on("exam:sync", (uniqueExam: Exam, examID: string) => {
@@ -293,3 +295,7 @@ io.on("connection", (socket) => {
 httpServer.listen(3001, () => {
     console.log("Socket server listening on http://localhost:3001");
 });
+
+function normalizeStudentName(name: string) {
+    return name.trim().replace(/\s+/g, " ").toUpperCase();
+}
