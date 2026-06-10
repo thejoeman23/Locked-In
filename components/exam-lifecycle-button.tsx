@@ -43,7 +43,7 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
   return (
     <div
       className={cn(
-        "inline-flex h-8 overflow-hidden rounded-md border shadow-xs",
+        "inline-flex h-9 overflow-hidden rounded-md border",
         exam.status === "setup" && "border-sky-200 bg-sky-50 text-sky-700",
         exam.status === "waiting" && "border-emerald-200 bg-emerald-50 text-emerald-700",
         exam.status === "live" && "border-amber-200 bg-amber-50 text-amber-800",
@@ -59,7 +59,7 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
           aria-label={exam.status === "live" ? "Return exam to waiting" : "Return exam to setup"}
           title={exam.status === "live" ? "Return exam to waiting" : "Return exam to setup"}
           onClick={handleBack}
-          className="h-8 w-8 rounded-none border-0 bg-transparent px-0 text-current shadow-none hover:bg-black/5 hover:text-current"
+          className="h-9 w-9 rounded-none border-0 bg-transparent px-0 text-current shadow-none hover:bg-black/5 hover:text-current"
         >
           <Undo2 className="size-4" />
         </Button>
@@ -70,7 +70,7 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
         variant="ghost"
         size="sm"
         onClick={handleButton}
-        className="h-8 min-w-28 rounded-none border-0 bg-transparent px-3 text-xs font-semibold text-current shadow-none hover:bg-black/5 hover:text-current"
+        className="h-9 min-w-32 rounded-none border-0 bg-transparent px-4 text-sm font-semibold text-current shadow-none hover:bg-black/5 hover:text-current"
         disabled={exam.status === "terminated"}
         {...props}
       >

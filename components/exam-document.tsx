@@ -66,7 +66,7 @@ export function ExamDocument({
     const insertIndex = activeItem.type === "document" ? content.length : activeItem.sectionIndex + 1;
 
     content.splice(insertIndex, 0, {
-      title: "New section",
+      title: "",
       items: []
     });
 
