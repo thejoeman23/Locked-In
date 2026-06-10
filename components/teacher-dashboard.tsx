@@ -1,10 +1,12 @@
 "use client"
 
-import { Circle, CircleCheck, Clock3 } from "lucide-react";
+import { Circle, CircleCheck, Clock3, CirclePlus } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { DeleteButton } from "@/components/delete-button";
 import type { Exam, Student } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
 
 type StudentDisplayState = "not-connected" | "connected" | "in-progress" | "submitted";
 
@@ -13,9 +15,10 @@ type Props = {
   roster: string[];
   students: Student[];
   onAddRosterName: (name: string) => void;
+  onRemoveRosterName: (name: string) => void;
 };
 
-export function TeacherDashboard({ examStatus, roster, students, onAddRosterName }: Props) {
+export function TeacherDashboard({ examStatus, roster, students, onAddRosterName, onRemoveRosterName }: Props) {
   const [studentName, setStudentName] = useState("");
   const displayStudents = getDisplayStudents(roster, students, examStatus);
 
@@ -30,6 +33,17 @@ export function TeacherDashboard({ examStatus, roster, students, onAddRosterName
     setStudentName("");
   }
 
+  function handleAddStudentButton() {
+    const inputElement = document.getElementById("student-name-input") as HTMLInputElement | null;
+    if (!inputElement) return;
+
+    if (inputElement.value === "") {
+      inputElement.focus();
+    } else {
+      submitStudentName(); 
+    }
+  }
+
   return (
     <aside className="h-fit rounded-xl border bg-background p-5 shadow-xs">
       <div className="space-y-1.5">
@@ -39,18 +53,28 @@ export function TeacherDashboard({ examStatus, roster, students, onAddRosterName
         </p>
       </div>
 
-      <Input
-        value={studentName}
-        onChange={(event) => setStudentName(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            submitStudentName();
-          }
-        }}
-        placeholder="Student name"
-        className="mt-4"
-      />
+      <div className="mt-4 flex flex-row items-center gap-2">
+        <Input
+          value={studentName}
+          onChange={(event) => setStudentName(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              document.getElementById("submit-student-name-button")?.click();
+            }
+          }}
+          placeholder="Student name"
+          id="student-name-input"
+        />
+        <Button
+          id="submit-student-name-button"
+          onClick={handleAddStudentButton}
+          size="icon"
+          aria-label="Add student"
+        >
+          <CirclePlus />
+        </Button>
+      </div>
 
       <div className="mt-5 min-h-24 rounded-md border bg-muted/20 p-3">
         {displayStudents.length === 0 ? (
@@ -62,6 +86,7 @@ export function TeacherDashboard({ examStatus, roster, students, onAddRosterName
                 key={student.name}
                 name={student.name}
                 state={student.state}
+                onDelete={() => onRemoveRosterName(student.name)}
               />
             ))}
           </div>
@@ -72,7 +97,7 @@ export function TeacherDashboard({ examStatus, roster, students, onAddRosterName
 }
 
 function getDisplayStudents(roster: string[], students: Student[], examStatus: Exam["status"]) {
-  const names = Array.from(new Set([...roster, ...students.map((student) => student.name)]));
+  const names = Array.from(new Set(roster));
 
   return names.map((name) => {
     const student = students.find((item) => item.name === name);
@@ -100,7 +125,7 @@ function getStudentState(student: Student, examStatus: Exam["status"]): StudentD
   return "not-connected";
 }
 
-function StudentChip({ name, state }: { name: string; state: StudentDisplayState }) {
+function StudentChip({ name, state, onDelete }: { name: string; state: StudentDisplayState; onDelete: () => void }) {
   const Icon = {
     "not-connected": Circle,
     connected: CircleCheck,
@@ -109,18 +134,35 @@ function StudentChip({ name, state }: { name: string; state: StudentDisplayState
   }[state];
 
   return (
-    <button
-      type="button"
+    <div
       className={cn(
-        "inline-flex items-center gap-2 rounded px-2 py-1 text-sm",
-        state === "not-connected" && "bg-neutral-200 text-neutral-800 ring-1 ring-neutral-300",
-        state === "connected" && "bg-sky-50 text-sky-800 ring-1 ring-sky-200",
-        state === "in-progress" && "bg-amber-50 text-amber-900 ring-1 ring-amber-200",
-        state === "submitted" && "bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200"
+        "inline-flex items-stretch overflow-hidden rounded text-sm ring-1",
+        state === "not-connected" && "bg-neutral-200 text-neutral-800 ring-neutral-300",
+        state === "connected" && "bg-sky-50 text-sky-800 ring-sky-200",
+        state === "in-progress" && "bg-amber-50 text-amber-900 ring-amber-200",
+        state === "submitted" && "bg-emerald-50 text-emerald-900 ring-emerald-200"
       )}
     >
-      <span>{name}</span>
-      <Icon className="size-3.5" />
-    </button>
+      <button
+        type="button"
+        className="inline-flex items-center gap-2 px-2 py-1"
+      >
+        <Icon className="size-3.5" />
+        <span>{name}</span>
+      </button>
+      <DeleteButton
+        triggersAlert={state === "connected" || state === "in-progress" ? true : false}
+        alertDescription={state === "connected" || state === "in-progress" ? "This action will kick this student from the exam." : undefined}
+        label={`Remove ${name} from roster`}
+        onClick={onDelete}
+        className={cn(
+          "size-auto rounded-none border-y-0 border-r-0 px-1.5",
+          state === "not-connected" && "border-neutral-300 bg-neutral-300/60 text-neutral-800 hover:bg-neutral-300",
+          state === "connected" && "border-sky-200 bg-sky-100 text-sky-800 hover:bg-sky-200",
+          state === "in-progress" && "border-amber-200 bg-amber-100 text-amber-900 hover:bg-amber-200",
+          state === "submitted" && "border-emerald-200 bg-emerald-100 text-emerald-900 hover:bg-emerald-200"
+        )}
+      />
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react";
-import { Trash2 } from "lucide-react";
+import { DeleteButton } from "@/components/delete-button";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -46,19 +46,7 @@ export function QuestionCard({
                 {...pointInputProps}
               />
             </label>
-            {onDelete && (
-              <button
-                type="button"
-                aria-label="Delete question"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDelete();
-                }}
-                className="inline-flex size-7 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-              >
-                <Trash2 className="size-4" />
-              </button>
-            )}
+            <DeleteButton label="Delete question" onClick={onDelete} />
           </div>
         ) : (
           <div className="flex items-center gap-2">

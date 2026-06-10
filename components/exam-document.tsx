@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react";
-import { BookOpen, Highlighter, ListChecks, MessageSquareText, Trash2 } from "lucide-react";
+import { BookOpen, Highlighter, ListChecks, MessageSquareText } from "lucide-react";
+import { DeleteButton } from "@/components/delete-button";
 import { DocumentAddButton } from "@/components/document-add-button";
 import { ExamSection } from "@/components/exam-section";
 import { ExamTitle } from "@/components/exam-title";
@@ -284,17 +285,7 @@ export function ExamDocument({
         section={section}
         teacherView={teacherView}
         titleAction={isActive(item) && (
-          <button
-            type="button"
-            aria-label="Delete section"
-            onClick={(event) => {
-              event.stopPropagation();
-              deleteItem(item);
-            }}
-            className="inline-flex size-7 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-          >
-            <Trash2 className="size-4" />
-          </button>
+          <DeleteButton label="Delete section" onClick={() => deleteItem(item)} />
         )}
         onTitleChange={(title) => updateSection(sectionIndex, { ...section, title })}
       >

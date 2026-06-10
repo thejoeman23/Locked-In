@@ -63,6 +63,14 @@ export default function Home() {
       console.warn("Name already in use for exam with code:", examCodeRef.current);
     });
 
+    socket.on("exam:kicked", () => {
+      examCodeRef.current = null;
+      setExam(null);
+      setStatus("join-code");
+      setStudentError("Your teacher removed you from this exam.");
+      console.warn("Student was removed from exam");
+    });
+
     socket.on("exam:alreadycompleted", () => {
       setStatus("join-code");
       setStudentError("You have already completed this exam.");
@@ -93,6 +101,7 @@ export default function Home() {
       setFinishReason("submitted");
       setStatus("finished");
       console.log("Exam submitted");
+      socketRef.current?.emit("exam:disconnect", examCodeRef.current);
     });
 
     // Sync/support events.
@@ -114,7 +123,7 @@ export default function Home() {
     socket.on("exam:terminated", (terms: TerminationTerms) => {
       setFinishReason(terms);
       setStatus("finished");
-      console.log("Exam terminated");
+      socketRef.current?.emit("exam:disconnect", examCodeRef.current);
     });
 
     socket.on("exam:setup", () => {

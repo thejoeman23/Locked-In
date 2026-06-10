@@ -67,6 +67,26 @@ io.on("connection", (socket) => {
         console.log(`Updated roster for exam ${examId}:`, activeExam.roster);
     });
 
+    socket.on("exam:kickstudent", (examId: string, name: string) => {
+        const activeExam = activeExams.get(examId);
+        if (!activeExam) {
+            console.warn(`Exam with ID ${examId} not found for kicking student ${name}`);
+            return;
+        }
+
+        const student = activeExam.students.find((student) => student.name === name);
+        if (!student) {
+            console.warn(`Student ${name} not found in exam ${examId} for kick`);
+            return;
+        }
+
+        io.to(student.socket).emit("exam:kicked");
+        io.sockets.sockets.get(student.socket)?.leave(examId);
+        activeExam.students = activeExam.students.filter((student) => student.name !== name);
+        io.to(examId).emit("exam:update", activeExam);
+        console.log(`Kicked student ${name} from exam ${examId}`);
+    });
+
     socket.on("exam:start", (examId: string, latestExam?: Exam) => {
         console.log("Starting exam:", examId);
         const activeExam = activeExams.get(examId);
@@ -123,6 +143,11 @@ io.on("connection", (socket) => {
         const activeExam = activeExams.get(examId);
         if (activeExam) {
             activeExam.exam.status = "waiting";
+            activeExam.students.forEach((student) => {
+                student.completed = false;
+                student.uniqueExam = activeExam.exam;
+            });
+            io.to(examId).emit("exam:update", activeExam);
             io.to(examId).emit("exam:setback", activeExam.exam);
         } else {
             console.warn(`Exam with ID ${examId} not found for setback`);
@@ -192,8 +217,14 @@ io.on("connection", (socket) => {
         };
 
         activeExam.students.push(student);
-        socket.emit("exam:joined");
         io.to(examId).emit("exam:update", activeExam);
+
+        if (activeExam.exam.status === "live") {
+            socket.emit("exam:started", student.uniqueExam);
+        } else {
+            socket.emit("exam:joined");
+        }
+
         console.log(`Registered student ${name} with ID ${socket.id} to exam ${examId}`);
     });
 
@@ -238,19 +269,24 @@ io.on("connection", (socket) => {
         console.log(`Received exam submission from student ${student.name} in exam ${examID}`);
     });
 
-    socket.on("disconnect", () => {
-        for (const [examId, activeExam] of activeExams) {
-            const student = activeExam.students.find((student) => student.socket === socket.id);
-
-            if (!student) {
-                continue;
-            }
-
-            student.connected = false;
-            io.to(examId).emit("exam:update", activeExam);
-            console.log(`Disconnected student ${student.name} from exam ${examId}`);
+    socket.on("disconnect", (examID: string) => {
+        const activeExam = activeExams.get(examID);
+        if (!activeExam) {
+            console.warn(`Exam with ID ${examID} not found for submission`);
             return;
         }
+
+        const student = activeExam.students.find((student) => student.socket === socket.id);
+        if (!student) {
+            console.warn('Student doesnt exist so cant disconnect.')
+            return;
+        }
+
+        student.connected = false;
+        io.to(examID).emit("exam:update", activeExam);
+        socket.leave(examID);
+        console.log(`Disconnected student ${student.name} from exam ${examID}`);
+        return;
     });
 });
 

@@ -126,6 +126,27 @@ export default function Home() {
     }
   }
 
+  function removeRosterName(name: string) {
+    const nextRoster = rosterRef.current.filter((studentName) => studentName !== name);
+    const currentExamCode = examCodeRef.current ?? examCode;
+    const student = students.find((student) => student.name === name);
+
+    rosterRef.current = nextRoster;
+    setRoster(nextRoster);
+
+    if (currentExamCode) {
+      if (student?.connected) {
+        console.log("Kicking student from exam:", currentExamCode, name);
+        socketRef.current?.emit("exam:kickstudent", currentExamCode, name);
+      }
+
+      console.log("Updating roster on server:", currentExamCode, nextRoster);
+      socketRef.current?.emit("exam:updateroster", currentExamCode, nextRoster);
+    } else {
+      console.log("Roster updated locally before exam code exists:", nextRoster);
+    }
+  }
+
   return (
     <TeacherLayout
       exam={exam}
@@ -134,6 +155,7 @@ export default function Home() {
       students={students}
       updateExam={updateExam}
       onAddRosterName={addRosterName}
+      onRemoveRosterName={removeRosterName}
     />
   );
 }
