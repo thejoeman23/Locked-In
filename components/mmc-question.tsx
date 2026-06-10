@@ -9,11 +9,12 @@ type Props = {
   teacherView: boolean;
   questionId?: string;
   className?: string;
+  studentAction?: React.ReactNode;
   onQuestionChange?: (question: MMCQuestionType) => void;
   onDelete?: () => void;
 };
 
-export function MMCQuestion({ question, teacherView, questionId, className, onQuestionChange, onDelete }: Props) {
+export function MMCQuestion({ question, teacherView, questionId, className, studentAction, onQuestionChange, onDelete }: Props) {
   function updateQuestion(patch: Partial<MMCQuestionType>) {
     onQuestionChange?.({ ...question, ...patch });
   }
@@ -72,7 +73,10 @@ export function MMCQuestion({ question, teacherView, questionId, className, onQu
             )}
           </div>
         ) : (
-          <span>{question.worth} pts</span>
+          <div className="flex items-center gap-2">
+            <span>{question.worth} pts</span>
+            {studentAction}
+          </div>
         )}
       </div>
 

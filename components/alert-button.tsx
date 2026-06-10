@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 type AlertButtonProps = React.ComponentProps<typeof Button> & {
-  alertTitle: React.ReactNode;
+  alertTitle?: React.ReactNode;
   alertDescription?: React.ReactNode;
   confirmText?: React.ReactNode;
   cancelText?: React.ReactNode;

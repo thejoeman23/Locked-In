@@ -8,6 +8,7 @@ import { ExamTitle } from "@/components/exam-title";
 import { HighlightWordQuestion } from "@/components/highlight-word-question";
 import { MMCQuestion } from "@/components/mmc-question";
 import { SAQuestion } from "@/components/sa-question";
+import { StarButton } from "@/components/star";
 import {
   Exam,
   ExamQuestion,
@@ -61,6 +62,13 @@ export function ExamDocument({
     updateSection(sectionIndex, { ...section, items });
   }
 
+  function toggleQuestionStar(sectionIndex: number, questionIndex: number, question: ExamQuestion) {
+    updateQuestion(sectionIndex, questionIndex, {
+      ...question,
+      starred: !question.starred
+    });
+  }
+
   function addSection() {
     const content = [...exam.content];
     const insertIndex = activeItem.type === "document" ? content.length : activeItem.sectionIndex + 1;
@@ -104,6 +112,7 @@ export function ExamDocument({
     addQuestion({
       text: "",
       worth: 1,
+      starred: false,
       options: ["Option A", "Option B", "Option C"],
       answer: null,
       correctOption: 0
@@ -114,6 +123,7 @@ export function ExamDocument({
     addQuestion({
       text: "",
       worth: 1,
+      starred: false,
       answer: null
     });
   }
@@ -123,6 +133,7 @@ export function ExamDocument({
       text: "",
       passage: "",
       worth: 1,
+      starred: false,
       answer: null,
       correctOptions: []
     });
@@ -199,11 +210,20 @@ export function ExamDocument({
   function renderExamQuestion(sectionIndex: number, question: ExamQuestion, questionIndex: number) {
     const questionId = `section-${sectionIndex}-question-${questionIndex}`;
     const item: ActiveItem = { type: "question", sectionIndex, questionIndex };
+    const studentAction = !teacherView ? (
+      <StarButton
+        filled={Boolean(question.starred)}
+        aria-label={question.starred ? "Unstar question" : "Star question"}
+        title={question.starred ? "Unstar question" : "Star question"}
+        onClick={() => toggleQuestionStar(sectionIndex, questionIndex, question)}
+      />
+    ) : undefined;
     const questionComponent = isMMCQuestion(question) ? (
       <MMCQuestion
         question={question}
         questionId={questionId}
         teacherView={teacherView}
+        studentAction={studentAction}
         onDelete={isActive(item) ? () => deleteItem(item) : undefined}
         onQuestionChange={(updatedQuestion) => updateQuestion(sectionIndex, questionIndex, updatedQuestion)}
       />
@@ -211,6 +231,7 @@ export function ExamDocument({
       <HighlightWordQuestion
         question={question}
         teacherView={teacherView}
+        studentAction={studentAction}
         onDelete={isActive(item) ? () => deleteItem(item) : undefined}
         onQuestionChange={(updatedQuestion) => updateQuestion(sectionIndex, questionIndex, updatedQuestion)}
       />
@@ -218,6 +239,7 @@ export function ExamDocument({
       <SAQuestion
         question={question as SAQuestionType}
         teacherView={teacherView}
+        studentAction={studentAction}
         onDelete={isActive(item) ? () => deleteItem(item) : undefined}
         onQuestionChange={(updatedQuestion) => updateQuestion(sectionIndex, questionIndex, updatedQuestion)}
       />

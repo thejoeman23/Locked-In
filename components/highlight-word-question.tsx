@@ -8,11 +8,12 @@ type Props = {
   question: UnderlineQuestion;
   teacherView: boolean;
   className?: string;
+  studentAction?: React.ReactNode;
   onQuestionChange?: (question: UnderlineQuestion) => void;
   onDelete?: () => void;
 };
 
-export function HighlightWordQuestion({ question, teacherView, className, onQuestionChange, onDelete }: Props) {
+export function HighlightWordQuestion({ question, teacherView, className, studentAction, onQuestionChange, onDelete }: Props) {
   const selectedWords = teacherView ? question.correctOptions ?? [] : question.answer ?? [];
   const words = (question.passage ?? "").split(/\s+/).filter(Boolean);
 
@@ -55,7 +56,10 @@ export function HighlightWordQuestion({ question, teacherView, className, onQues
             )}
           </div>
         ) : (
-          <span>{question.worth} pts</span>
+          <div className="flex items-center gap-2">
+            <span>{question.worth} pts</span>
+            {studentAction}
+          </div>
         )}
       </div>
 

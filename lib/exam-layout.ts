@@ -36,6 +36,7 @@ export interface Section {
 export interface Question {
     text: string;
     worth: number;
+    starred: boolean;
 }
 
 export type ExamQuestion = MMCQuestion | SAQuestion | UnderlineQuestion;

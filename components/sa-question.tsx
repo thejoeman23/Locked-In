@@ -8,11 +8,12 @@ type Props = {
   question: SAQuestionType;
   teacherView: boolean;
   className?: string;
+  studentAction?: React.ReactNode;
   onQuestionChange?: (question: SAQuestionType) => void;
   onDelete?: () => void;
 };
 
-export function SAQuestion({ question, teacherView, className, onQuestionChange, onDelete }: Props) {
+export function SAQuestion({ question, teacherView, className, studentAction, onQuestionChange, onDelete }: Props) {
   function updateQuestion(patch: Partial<SAQuestionType>) {
     onQuestionChange?.({ ...question, ...patch });
   }
@@ -48,7 +49,10 @@ export function SAQuestion({ question, teacherView, className, onQuestionChange,
             )}
           </div>
         ) : (
-          <span>{question.worth} pts</span>
+          <div className="flex items-center gap-2">
+            <span>{question.worth} pts</span>
+            {studentAction}
+          </div>
         )}
       </div>
 
