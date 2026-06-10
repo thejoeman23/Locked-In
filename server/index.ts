@@ -41,6 +41,7 @@ io.on("connection", (socket) => {
             "exam:created",
             examCode
         );
+        socket.emit("exam:update", newActiveExam);
     });
 
     socket.on("exam:update", (examId: string, exam: Exam) => {
@@ -51,6 +52,19 @@ io.on("connection", (socket) => {
         }
 
         activeExam.exam = exam;
+    });
+
+    socket.on("exam:updateroster", (examId: string, roster: string[]) => {
+        const activeExam = activeExams.get(examId);
+        if (!activeExam) {
+            console.warn(`Exam with ID ${examId} not found for roster update`);
+            return;
+        }
+
+        socket.join(examId);
+        activeExam.roster = Array.from(new Set(roster.map((name) => name.trim()).filter(Boolean)));
+        io.to(examId).emit("exam:update", activeExam);
+        console.log(`Updated roster for exam ${examId}:`, activeExam.roster);
     });
 
     socket.on("exam:start", (examId: string, latestExam?: Exam) => {
@@ -218,6 +232,7 @@ io.on("connection", (socket) => {
 
         student.completed = true;
         socket.emit("exam:submitted");
+        io.to(examID).emit("exam:update", activeExam);
 
         // In a real implementation, you'd likely want to persist this submission and trigger grading.
         console.log(`Received exam submission from student ${student.name} in exam ${examID}`);

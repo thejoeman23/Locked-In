@@ -5,13 +5,22 @@ import { CircleCheck, Copy } from "lucide-react";
 import { ExamDocument } from "@/components/exam-document";
 import { ExamLifecycleButton } from "@/components/exam-lifecycle-button";
 import { ExamTitle } from "@/components/exam-title";
+import { TeacherDashboard } from "@/components/teacher-dashboard";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/back-button";
-import { Exam } from "@/lib/exam-layout";
+import { Exam, Student } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 
-type Props = { exam: Exam; examCode: string | null; updateExam: (exam: Exam) => void };
-export function TeacherLayout({ exam, examCode, updateExam }: Props) {
+type Props = {
+  exam: Exam;
+  examCode: string | null;
+  roster: string[];
+  students: Student[];
+  updateExam: (exam: Exam) => void;
+  onAddRosterName: (name: string) => void;
+};
+
+export function TeacherLayout({ exam, examCode, roster, students, updateExam, onAddRosterName }: Props) {
   const [copiedExamCode, setCopiedExamCode] = useState(false);
   const shouldShowExamCode = examCode && (exam.status === "waiting" || exam.status === "live");
 
@@ -83,7 +92,7 @@ export function TeacherLayout({ exam, examCode, updateExam }: Props) {
         </div>
       </header>
 
-      <section className="flex justify-center px-4 py-8">
+      <section className="grid justify-center gap-6 px-4 py-8 xl:grid-cols-[minmax(0,816px)_320px]">
         <div className="w-full max-w-[816px]">
           <ExamDocument
             exam={exam}
@@ -91,6 +100,12 @@ export function TeacherLayout({ exam, examCode, updateExam }: Props) {
             onExamChange={updateExam}
           />
         </div>
+        <TeacherDashboard
+          examStatus={exam.status}
+          roster={roster}
+          students={students}
+          onAddRosterName={onAddRosterName}
+        />
       </section>
     </main>
   );
