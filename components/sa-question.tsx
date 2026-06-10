@@ -1,8 +1,7 @@
 "use client"
 
-import { Trash2 } from "lucide-react";
+import { QuestionCard } from "@/components/question-card";
 import { SAQuestion as SAQuestionType } from "@/lib/exam-layout";
-import { cn } from "@/lib/utils";
 
 type Props = {
   question: SAQuestionType;
@@ -19,43 +18,16 @@ export function SAQuestion({ question, teacherView, className, studentAction, on
   }
 
   return (
-    <div className={cn("rounded-lg border bg-background/80 p-4 shadow-xs transition-colors hover:border-slate-300 hover:bg-slate-50/60", className)}>
-      <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-wide text-muted-foreground">
-        <span>Short answer</span>
-        {teacherView ? (
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 normal-case tracking-normal">
-              <span>Points</span>
-              <input
-                type="number"
-                min={0}
-                value={question.worth ?? 0}
-                onChange={(event) => updateQuestion({ worth: Number(event.target.value) })}
-                className="h-7 w-16 rounded-md border bg-transparent px-2 text-right text-foreground outline-none focus:border-ring"
-              />
-            </label>
-            {onDelete && (
-              <button
-                type="button"
-                aria-label="Delete question"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDelete();
-                }}
-                className="inline-flex size-7 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-              >
-                <Trash2 className="size-4" />
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <span>{question.worth} pts</span>
-            {studentAction}
-          </div>
-        )}
-      </div>
-
+    <QuestionCard
+      label="Short answer"
+      worth={question.worth ?? 0}
+      teacherView={teacherView}
+      className={className}
+      studentAction={studentAction}
+      pointInputProps={{ min: 0 }}
+      onWorthChange={(worth) => updateQuestion({ worth })}
+      onDelete={onDelete}
+    >
       {teacherView ? (
         <textarea
           value={question.text ?? ""}
@@ -74,6 +46,6 @@ export function SAQuestion({ question, teacherView, className, studentAction, on
         placeholder={teacherView ? "Student answer area" : "Type your answer"}
         className="mt-4 min-h-24 w-full resize-none rounded-md border bg-transparent p-3 text-sm leading-6 outline-none focus:border-ring disabled:bg-muted/30"
       />
-    </div>
+    </QuestionCard>
   );
 }

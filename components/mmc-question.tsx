@@ -1,6 +1,6 @@
 "use client"
 
-import { Trash2 } from "lucide-react";
+import { QuestionCard } from "@/components/question-card";
 import { MMCQuestion as MMCQuestionType } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 
@@ -42,44 +42,17 @@ export function MMCQuestion({ question, teacherView, questionId, className, stud
   }
 
   return (
-    <div className={cn("rounded-lg border bg-background/80 p-4 shadow-xs transition-colors hover:border-slate-300 hover:bg-slate-50/60", className)}>
-      <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-wide text-muted-foreground">
-        <span>Multiple choice</span>
-        {teacherView ? (
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 normal-case tracking-normal">
-              <span>Points</span>
-              <input
-                type="number"
-                max={100}
-                value={question.worth ?? 1}
-                onChange={(event) => updateQuestion({ worth: Number(event.target.value) })}
-                onFocus={(event) => event.target.select()}
-                className="h-7 field-sizing-content rounded-md border bg-transparent px-2 text-right text-foreground outline-none focus:border-ring"
-              />
-            </label>
-            {onDelete && (
-              <button
-                type="button"
-                aria-label="Delete question"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDelete();
-                }}
-                className="inline-flex size-7 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-              >
-                <Trash2 className="size-4" />
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <span>{question.worth} pts</span>
-            {studentAction}
-          </div>
-        )}
-      </div>
-
+    <QuestionCard
+      label="Multiple choice"
+      worth={question.worth ?? 1}
+      teacherView={teacherView}
+      className={className}
+      studentAction={studentAction}
+      pointInputClassName="field-sizing-content"
+      pointInputProps={{ max: 100 }}
+      onWorthChange={(worth) => updateQuestion({ worth })}
+      onDelete={onDelete}
+    >
       {teacherView ? (
         <textarea
           value={question.text ?? ""}
@@ -96,7 +69,7 @@ export function MMCQuestion({ question, teacherView, questionId, className, stud
           <label
             key={index}
             className={cn(
-              "flex items-center gap-3 rounded-md p-2 text-sm transition-colors",
+              "flex items-center gap-3 rounded-md p-2 text-sm transition-colors hover:bg-muted",
               teacherView && question.correctOption === index && "bg-emerald-50 text-emerald-950 ring-1 ring-emerald-200"
             )}
           >
@@ -142,6 +115,6 @@ export function MMCQuestion({ question, teacherView, questionId, className, stud
           Add option
         </button>
       )}
-    </div>
+    </QuestionCard>
   );
 }

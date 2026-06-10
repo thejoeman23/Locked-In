@@ -1,6 +1,6 @@
 "use client"
 
-import { Trash2 } from "lucide-react";
+import { QuestionCard } from "@/components/question-card";
 import { UnderlineQuestion } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 
@@ -26,43 +26,16 @@ export function HighlightWordQuestion({ question, teacherView, className, studen
   }
 
   return (
-    <div className={cn("rounded-lg border bg-background/80 p-4 shadow-xs transition-colors hover:border-slate-300 hover:bg-slate-50/60", className)}>
-      <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-wide text-muted-foreground">
-        <span>Highlight words</span>
-        {teacherView ? (
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 normal-case tracking-normal">
-              <span>Points</span>
-              <input
-                type="number"
-                min={0}
-                value={question.worth ?? 0}
-                onChange={(event) => onQuestionChange?.({ ...question, worth: Number(event.target.value) })}
-                className="h-7 w-16 rounded-md border bg-transparent px-2 text-right text-foreground outline-none focus:border-ring"
-              />
-            </label>
-            {onDelete && (
-              <button
-                type="button"
-                aria-label="Delete question"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDelete();
-                }}
-                className="inline-flex size-7 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-              >
-                <Trash2 className="size-4" />
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <span>{question.worth} pts</span>
-            {studentAction}
-          </div>
-        )}
-      </div>
-
+    <QuestionCard
+      label="Highlight words"
+      worth={question.worth ?? 0}
+      teacherView={teacherView}
+      className={className}
+      studentAction={studentAction}
+      pointInputProps={{ min: 0 }}
+      onWorthChange={(worth) => onQuestionChange?.({ ...question, worth })}
+      onDelete={onDelete}
+    >
       {teacherView ? (
         <div className="mt-3 space-y-3">
           <textarea
@@ -110,6 +83,6 @@ export function HighlightWordQuestion({ question, teacherView, className, studen
           )}
         </div>
       </div>
-    </div>
+    </QuestionCard>
   );
 }
