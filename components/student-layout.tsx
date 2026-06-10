@@ -6,6 +6,7 @@ import { Exam, StudentFinishReason, StudentStatus } from "@/lib/exam-layout";
 import { Field, FieldTitle, FieldDescription } from "./ui/field";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { AlertButton } from "./alert-button";
 
 type Props = { 
   exam: Exam | null;
@@ -67,7 +68,14 @@ export function StudentLayout({ exam, status, errorMessage, finishReason, update
           <section className="flex justify-center px-4 py-8">
             <div className="w-full max-w-[816px]">
               <ExamDocument exam={exam} teacherView={false} onExamChange={updateExam} />
-              <Button onClick={submitExam}>Submit</Button>
+              <AlertButton 
+              alertDescription="Before submitting your exam, please review all your answers and any starred questions." 
+              onClick={submitExam}
+              confirmText="Submit Exam"
+              className="w-full h-14 mt-4"
+              >
+                Submit
+              </AlertButton>
             </div>
           </section>
         </div>
