@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ExamDocument } from "@/components/exam-document";
-import { ExamTitle } from "@/components/exam-title";
 import { Exam, StudentFinishReason, StudentStatus } from "@/lib/exam-layout";
 import { Field, FieldTitle, FieldDescription } from "./ui/field";
 import { Input } from "./ui/input";

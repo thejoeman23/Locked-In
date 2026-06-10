@@ -1,11 +1,11 @@
 "use client"
 
 import { Undo2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AlertButton } from "@/components/alert-button";
 import { Exam } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 
-type Props = React.ComponentProps<typeof Button> & {
+type Props = React.ComponentProps<typeof AlertButton> & {
   exam: Exam;
   updateExam: (exam: Exam) => void;
 };
@@ -52,7 +52,10 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
       )}
     >
       {canGoBack && (
-        <Button
+        <AlertButton
+          triggersAlert={exam.status === "live"}
+          alertTitle="Are you absolutely sure?"
+          alertDescription={exam.status === "live" ? "This action will end the exam for all students. Their progress will be erased." : undefined}
           type="button"
           variant="ghost"
           size="icon-sm"
@@ -62,10 +65,12 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
           className="h-9 w-9 rounded-none border-0 bg-transparent px-0 text-current shadow-none hover:bg-black/5 hover:text-current"
         >
           <Undo2 className="size-4" />
-        </Button>
+        </AlertButton>
       )}
       {canGoBack && <div className="h-full w-px bg-current/20" />}
-      <Button
+      <AlertButton
+        triggersAlert={exam.status === "live"}
+        alertDescription="This action will end the exam for all students. Their finished exams will be saved for you to download."
         type="button"
         variant="ghost"
         size="sm"
@@ -78,7 +83,7 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
         {exam.status === "waiting" && "Start Exam"}
         {exam.status === "live" && "End Exam"}
         {exam.status === "terminated" && "Exam Terminated"}
-      </Button>
+      </AlertButton>
     </div>
   );
 }
