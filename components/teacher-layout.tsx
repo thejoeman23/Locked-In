@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 type Props = { exam: Exam; examCode: string | null; updateExam: (exam: Exam) => void };
 export function TeacherLayout({ exam, examCode, updateExam }: Props) {
   const [copiedExamCode, setCopiedExamCode] = useState(false);
+  const shouldShowExamCode = examCode && (exam.status === "waiting" || exam.status === "live");
 
   function updateExamTitle(title: string) {
     updateExam({ ...exam, title });
@@ -39,7 +40,7 @@ export function TeacherLayout({ exam, examCode, updateExam }: Props) {
   return (
     <main className="min-h-screen w-full bg-[#f1f3f4] text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background shadow-xs">
-        <div className="flex min-h-14 items-center gap-3 px-16">
+        <div className="flex min-h-17 items-center gap-3 pl-16 pr-6">
           <div className="min-w-0 flex-1">
             <ExamTitle
               title={exam.title}
@@ -59,7 +60,7 @@ export function TeacherLayout({ exam, examCode, updateExam }: Props) {
             title={examCode ? "Copy exam code" : "Exam code unavailable"}
             className={cn(
               "h-8 overflow-hidden rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 transition-[max-width,opacity,transform,padding,border-width] duration-300 ease-out hover:bg-sky-100 hover:text-sky-800 disabled:opacity-0",
-              exam.status === "waiting" && examCode
+              shouldShowExamCode
                 ? "max-w-44 translate-x-0 opacity-100"
                 : "max-w-0 translate-x-2 border-0 px-0 opacity-0 pointer-events-none"
             )}

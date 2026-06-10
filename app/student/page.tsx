@@ -141,7 +141,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(syncExam, 30000); // Sync every 30 seconds.
+    const interval = setInterval(syncExam, 5000); // Sync every 30 seconds.
     function syncExam() {
       if (!exam) {
         return;

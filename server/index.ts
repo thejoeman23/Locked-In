@@ -152,10 +152,15 @@ io.on("connection", (socket) => {
         if (existingStudent) {
             existingStudent.socket = socket.id;
             existingStudent.connected = true;
-            socket.emit("exam:joined");
             io.to(examId).emit("exam:update", activeExam);
             console.log(`Reconnected student ${name} with ID ${socket.id} to exam ${examId}`);
             
+            if (activeExam.exam.status === "live") {
+                socket.emit("exam:started", existingStudent.uniqueExam);
+            } else {
+                socket.emit("exam:joined");
+            }
+
             return;
         }
 
