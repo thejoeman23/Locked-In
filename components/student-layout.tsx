@@ -7,6 +7,8 @@ import { Field, FieldTitle, FieldDescription } from "./ui/field";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { AlertButton } from "./alert-button";
+import { BackButton } from "./back-button"; 
+import { ErrorMessage } from "./error-message";
 
 type Props = { 
   exam: Exam | null;
@@ -22,11 +24,11 @@ type Props = {
 export function StudentLayout({ exam, status, errorMessage, finishReason, updateExam, searchForExam, joinExam, submitExam }: Props) {
   const [examCode, setExamCode] = useState("");
   const [studentName, setStudentName] = useState("");
-  const errorDisplay = 
-    <p className="text-xs text-red-600 text-center">{errorMessage ? errorMessage : "    "}</p>
+  const errorDisplay = <ErrorMessage message={errorMessage} />;
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4">
+      <BackButton className="absolute top-4 left-4" />
       {status === "join-code" && (
         <Field className="w-full max-w-sm">
           <FieldTitle>Exam Code</FieldTitle>

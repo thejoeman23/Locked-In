@@ -6,6 +6,7 @@ import { ExamDocument } from "@/components/exam-document";
 import { ExamLifecycleButton } from "@/components/exam-lifecycle-button";
 import { ExamTitle } from "@/components/exam-title";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/back-button";
 import { Exam } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 
@@ -40,8 +41,9 @@ export function TeacherLayout({ exam, examCode, updateExam }: Props) {
   return (
     <main className="min-h-screen w-full bg-[#f1f3f4] text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background shadow-xs">
-        <div className="relative flex min-h-17 items-center pl-17 pr-6">
-          <div className="min-w-0 flex-1">
+        <div className="relative flex min-h-18 items-center px-6">
+          <BackButton />
+          <div className="min-w-0 flex-1 ml-2.5">
             <ExamTitle
               title={exam.title}
               teacherView
@@ -50,7 +52,7 @@ export function TeacherLayout({ exam, examCode, updateExam }: Props) {
             />
           </div>
 
-          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm tracking-wide text-muted-foreground">
+          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-base tracking-wide text-muted-foreground">
             Exam Editor
           </div>
 

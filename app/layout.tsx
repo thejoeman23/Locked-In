@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { BackButton } from "@/components/back-button";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -27,7 +26,6 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", geistMono.variable, "font-sans")}
     >
       <body className="min-h-full flex flex-col">
-        <BackButton />
         {children}
       </body>
     </html>

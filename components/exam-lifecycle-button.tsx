@@ -69,8 +69,10 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
       )}
       {canGoBack && <div className="h-full w-px bg-current/20" />}
       <AlertButton
-        triggersAlert={exam.status === "live"}
-        alertDescription="This action will end the exam for all students. Their finished exams will be saved for you to download."
+        triggersAlert={exam.status === "live" || exam.status === "waiting"}
+        alertDescription={exam.status === "live" ? 
+          "This action will end the exam for all students. Their finished exams will be saved for you to download.":
+          "This action will start the exam for all students. Make sure everyone is ready before you start."}
         type="button"
         variant="ghost"
         size="sm"
@@ -79,7 +81,7 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
         disabled={exam.status === "terminated"}
         {...props}
       >
-        {exam.status === "setup" && "Reveal Code"}
+        {exam.status === "setup" && "Reveal Exam Join Code"}
         {exam.status === "waiting" && "Start Exam"}
         {exam.status === "live" && "End Exam"}
         {exam.status === "terminated" && "Exam Terminated"}

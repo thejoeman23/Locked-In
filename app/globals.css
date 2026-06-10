@@ -172,6 +172,10 @@
     animation: exam-card-out 180ms ease-in both;
     pointer-events: none;
   }
+
+  .error-message-fade:not(:empty) {
+    animation: error-message-in 160ms ease-out both;
+  }
 }
 
 @keyframes exam-card-in {
@@ -191,6 +195,18 @@
 
   to {
     opacity: 0;
+  }
+}
+
+@keyframes error-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
