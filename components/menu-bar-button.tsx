@@ -11,7 +11,7 @@ export function MenuBarButton({ className, variant = "ghost", size = "sm", ...pr
       variant={variant}
       size={size}
       className={cn(
-        "h-8 rounded-md px-3 text-xs font-medium text-foreground/80 hover:bg-muted hover:text-foreground",
+        "h-8 rounded-md px-3 text-xs text-foreground/80 hover:bg-muted hover:text-foreground",
         className
       )}
       {...props}

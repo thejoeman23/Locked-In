@@ -12,7 +12,7 @@ export function DocumentAddButton({ icon, className, children, ...props }: Props
     <Button
       type="button"
       variant="outline"
-      className={cn("h-8 rounded-md px-3 text-xs font-medium shadow-xs whitespace-nowrap", className)}
+      className={cn("h-8 rounded-md px-3 text-xs shadow-xs whitespace-nowrap", className)}
       {...props}
     >
       {icon}

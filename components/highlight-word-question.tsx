@@ -26,7 +26,7 @@ export function HighlightWordQuestion({ question, teacherView, className, onQues
 
   return (
     <div className={cn("rounded-lg border bg-background/80 p-4 shadow-xs transition-colors hover:border-slate-300 hover:bg-slate-50/60", className)}>
-      <div className="flex items-center justify-between gap-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-wide text-muted-foreground">
         <span>Highlight words</span>
         {teacherView ? (
           <div className="flex items-center gap-2">
@@ -75,11 +75,11 @@ export function HighlightWordQuestion({ question, teacherView, className, onQues
           />
         </div>
       ) : (
-        <p className="mt-3 text-sm font-medium leading-6">{question.text}</p>
+        <p className="mt-3 text-sm leading-6">{question.text}</p>
       )}
 
       <div className="mt-4 rounded-md border bg-muted/20 p-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
           {teacherView ? "Click words to mark the answer" : "Click words to highlight"}
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-sm leading-7">

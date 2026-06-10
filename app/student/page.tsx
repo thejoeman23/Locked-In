@@ -63,6 +63,12 @@ export default function Home() {
       console.warn("Name already in use for exam with code:", examCodeRef.current);
     });
 
+    socket.on("exam:alreadycompleted", () => {
+      setStatus("join-code");
+      setStudentError("You have already completed this exam.");
+      console.warn("Student attempted to join an exam they have already completed with code:", examCodeRef.current);
+    });
+
     // Chronological exam flow.
     socket.on("exam:found", () => {
       setStudentError(null);

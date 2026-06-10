@@ -13,7 +13,7 @@ type Props = {
 export function ExamTitle({ title, teacherView, className, onTitleChange }: Props) {
   if (!teacherView) {
     return (
-      <h1 className={cn("text-2xl font-semibold", className)}>
+      <h1 className={cn("text-2xl", className)}>
         {title || "Untitled exam"}
       </h1>
     );
@@ -25,7 +25,7 @@ export function ExamTitle({ title, teacherView, className, onTitleChange }: Prop
       onChange={(event) => onTitleChange?.(event.target.value)}
       placeholder="Untitled exam"
       className={cn(
-        "h-8 border-transparent bg-transparent px-2 text-base font-medium shadow-none hover:border-border focus-visible:border-ring",
+        "h-8 border-transparent bg-transparent px-2 text-base shadow-none hover:border-border focus-visible:border-ring",
         className
       )}
     />

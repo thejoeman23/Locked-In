@@ -6,16 +6,16 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function generateExamCode(activeExams: Map<string, unknown>): string {
-    // Eight characters gives a small, readable classroom code while checking collisions.
+    // Six characters gives a small, readable classroom code while checking collisions.
     const chars =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789";
 
     let code: string;
 
     do {
         code = "";
 
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 6; i++) {
             code += chars[
                 Math.floor(Math.random() * chars.length)
             ];

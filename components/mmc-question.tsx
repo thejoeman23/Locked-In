@@ -42,7 +42,7 @@ export function MMCQuestion({ question, teacherView, questionId, className, onQu
 
   return (
     <div className={cn("rounded-lg border bg-background/80 p-4 shadow-xs transition-colors hover:border-slate-300 hover:bg-slate-50/60", className)}>
-      <div className="flex items-center justify-between gap-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-wide text-muted-foreground">
         <span>Multiple choice</span>
         {teacherView ? (
           <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ export function MMCQuestion({ question, teacherView, questionId, className, onQu
           className="mt-3 min-h-20 w-full resize-none rounded-md border bg-transparent p-3 text-sm leading-6 outline-none focus:border-ring"
         />
       ) : (
-        <p className="mt-3 text-sm font-medium leading-6">{question.text}</p>
+        <p className="mt-3 text-sm leading-6">{question.text}</p>
       )}
 
       <div className="mt-4 space-y-2">
@@ -133,7 +133,7 @@ export function MMCQuestion({ question, teacherView, questionId, className, onQu
         <button
           type="button"
           onClick={addOption}
-          className="mt-3 rounded-md border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="mt-3 rounded-md border px-3 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           Add option
         </button>

@@ -50,7 +50,7 @@ export function TeacherLayout({ exam, examCode, updateExam }: Props) {
             />
           </div>
 
-          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-medium tracking-wide text-muted-foreground">
+          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm tracking-wide text-muted-foreground">
             Exam Editor
           </div>
 
@@ -64,7 +64,7 @@ export function TeacherLayout({ exam, examCode, updateExam }: Props) {
               aria-label={examCode ? `Copy exam code ${examCode}` : "Exam code unavailable"}
               title={examCode ? "Copy exam code" : "Exam code unavailable"}
               className={cn(
-                "h-9 overflow-hidden rounded-md border border-sky-200 bg-sky-50 px-3.5 text-sm font-semibold text-sky-700 transition-[max-width,opacity,transform,padding,border-width] duration-300 ease-out hover:bg-sky-100 hover:text-sky-800 disabled:opacity-0",
+                "h-9 overflow-hidden rounded-md border border-sky-200 bg-sky-50 px-3.5 text-base font-black text-sky-700 transition-[max-width,opacity,transform,padding,border-width] duration-300 ease-out hover:bg-sky-100 hover:text-sky-800 disabled:opacity-0",
                 shouldShowExamCode
                   ? "max-w-56 translate-x-0 opacity-100"
                   : "max-w-0 translate-x-2 border-0 px-0 opacity-0 pointer-events-none"

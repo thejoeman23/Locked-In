@@ -370,7 +370,7 @@ export function ExamDocument({
         <ExamTitle
           title={exam.title}
           teacherView={teacherView}
-          className="h-auto w-full px-0 text-center text-3xl font-semibold"
+          className="h-auto w-full px-0 text-center text-3xl"
           onTitleChange={updateExamTitle}
         />
         <p className="mt-2 text-sm text-muted-foreground">

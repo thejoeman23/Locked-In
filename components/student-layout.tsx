@@ -23,7 +23,7 @@ export function StudentLayout({ exam, status, errorMessage, finishReason, update
   const [examCode, setExamCode] = useState("");
   const [studentName, setStudentName] = useState("");
   const errorDisplay = 
-    <p className="text-xs font-medium text-red-600 text-center">{errorMessage ? errorMessage : "    "}</p>
+    <p className="text-xs text-red-600 text-center">{errorMessage ? errorMessage : "    "}</p>
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4">
@@ -57,7 +57,7 @@ export function StudentLayout({ exam, status, errorMessage, finishReason, update
 
       {status === "waiting" && (
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold">You are in.</h1>
+          <h1 className="text-2xl">You are in.</h1>
           <p className="text-sm text-muted-foreground">Waiting for your teacher to start the exam.</p>
           {errorDisplay}
         </div>
@@ -65,12 +65,6 @@ export function StudentLayout({ exam, status, errorMessage, finishReason, update
 
       {status === "taking-exam" && exam && (
         <div className="min-h-screen w-full bg-[#f1f3f4] text-foreground">
-          <header className="sticky top-0 z-10 border-b bg-background shadow-xs">
-            <div className="flex min-h-14 items-center gap-3 px-16">
-              <ExamTitle title={exam.title} teacherView={false} className="min-w-0 flex-1" />
-            </div>
-          </header>
-
           <section className="flex justify-center px-4 py-8">
             <div className="w-full max-w-[816px]">
               <ExamDocument exam={exam} teacherView={false} onExamChange={updateExam} />
@@ -82,7 +76,7 @@ export function StudentLayout({ exam, status, errorMessage, finishReason, update
 
       {status === "finished" && (
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold">Finished</h1>
+          <h1 className="text-2xl">Finished</h1>
           <p className="text-sm text-muted-foreground">{getFinishedMessage(finishReason)}</p>
         </div>
       )}

@@ -147,6 +147,11 @@ io.on("connection", (socket) => {
             return;
         }
 
+        if (existingStudent?.completed === true) {
+            socket.emit("exam:alreadycompleted");
+            return;
+        }
+
         socket.join(examId);
 
         if (existingStudent) {

@@ -70,7 +70,7 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
         variant="ghost"
         size="sm"
         onClick={handleButton}
-        className="h-9 min-w-32 rounded-none border-0 bg-transparent px-4 text-sm font-semibold text-current shadow-none hover:bg-black/5 hover:text-current"
+        className="h-9 min-w-32 rounded-none border-0 bg-transparent px-4 text-sm text-current shadow-none hover:bg-black/5 hover:text-current"
         disabled={exam.status === "terminated"}
         {...props}
       >

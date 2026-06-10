@@ -19,7 +19,7 @@ export function TeacherInput({ exam, updateExam, className, ...props }: Props) {
       defaultValue={exam.title}
       onBlur={onInputChanged}
       placeholder="Untitled exam"
-      className={cn("h-8 border-transparent bg-transparent px-2 text-base font-medium shadow-none hover:border-border focus-visible:border-ring", className)}
+      className={cn("h-8 border-transparent bg-transparent px-2 text-base shadow-none hover:border-border focus-visible:border-ring", className)}
       {...props}
     />
   );
