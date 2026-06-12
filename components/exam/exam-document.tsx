@@ -5,6 +5,7 @@ import { BookOpen, Highlighter, ListChecks, MessageSquareText, Table2 } from "lu
 import { DefenitionsTableQuestion } from "@/components/exam/defenitions-table-question";
 import { DocumentAddButton } from "@/components/exam/document-add-button";
 import { ExamSection } from "@/components/exam/exam-section";
+import { getExamTopElementId, getQuestionElementId, getSectionElementId } from "@/components/exam/exam-outline";
 import { ExamTitle } from "@/components/exam/exam-title";
 import { HighlightWordQuestion } from "@/components/exam/highlight-word-question";
 import { MMCQuestion } from "@/components/exam/mmc-question";
@@ -221,7 +222,7 @@ export function ExamDocument({
 
   // Pick the correct question component based on the shape of the question data.
   function renderExamQuestion(sectionIndex: number, question: ExamQuestion, questionIndex: number) {
-    const questionId = `section-${sectionIndex}-question-${questionIndex}`;
+    const questionId = getQuestionElementId(sectionIndex, questionIndex);
     const item: ActiveItem = { type: "question", sectionIndex, questionIndex };
     const studentAction = !teacherView ? (
       <StarButton
@@ -272,13 +273,14 @@ export function ExamDocument({
 
     return (
       <div
+        id={questionId}
         key={questionId}
         onMouseEnter={() => setActiveItem(item)}
         onFocus={(event) => {
           event.stopPropagation();
           setActiveItem(item);
         }}
-        className="rounded-lg"
+        className="scroll-mt-24 rounded-lg"
       >
         <div
           className="exam-card-motion rounded-lg"
@@ -312,8 +314,9 @@ export function ExamDocument({
 
     return (
       <div
+        id={getSectionElementId(sectionIndex)}
         key={`section-${sectionIndex}`}
-        className="rounded-lg"
+        className="scroll-mt-24 rounded-lg"
       >
         <div
           className="exam-card-motion rounded-lg border border-transparent p-4"
@@ -382,8 +385,9 @@ export function ExamDocument({
 
   return (
     <article
+      id={getExamTopElementId()}
       className={cn(
-        "min-h-[880px] w-full max-w-[816px] bg-white px-16 py-12 shadow-sm ring-1 ring-black/10",
+        "min-h-[880px] w-full max-w-[816px] scroll-mt-24 bg-white px-16 py-12 shadow-sm ring-1 ring-black/10",
         className
       )}
     >
