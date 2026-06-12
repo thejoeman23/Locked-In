@@ -1,8 +1,8 @@
 "use client"
 
-import { CopyExamCodeButton } from "@/components/copy-exam-code-button";
-import { ExamLifecycleButton } from "@/components/exam-lifecycle-button";
-import { TeacherDashboard } from "@/components/teacher-dashboard";
+import { CopyExamCodeButton } from "@/components/teacher/copy-exam-code-button";
+import { ExamLifecycleButton } from "@/components/teacher/exam-lifecycle-button";
+import { TeacherDashboard } from "@/components/teacher/teacher-dashboard";
 import type { Exam, Student } from "@/lib/exam-layout";
 
 type Props = {
@@ -11,8 +11,6 @@ type Props = {
   roster: string[];
   students: Student[];
   updateExam: (exam: Exam) => void;
-  onAddRosterName: (name: string) => void;
-  onAddRosterNames: (names: string[]) => void;
   onRemoveRosterName: (name: string) => void;
 };
 
@@ -22,8 +20,6 @@ export function AdministerView({
   roster,
   students,
   updateExam,
-  onAddRosterName,
-  onAddRosterNames,
   onRemoveRosterName
 }: Props) {
   return (
@@ -39,8 +35,6 @@ export function AdministerView({
         examStatus={exam.status}
         roster={roster}
         students={students}
-        onAddRosterName={onAddRosterName}
-        onAddRosterNames={onAddRosterNames}
         onRemoveRosterName={onRemoveRosterName}
       />
     </section>

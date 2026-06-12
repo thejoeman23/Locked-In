@@ -1,6 +1,6 @@
 "use client";
 
-import { TeacherLayout } from "@/components/teacher-layout";
+import { TeacherLayout } from "@/components/teacher/teacher-layout";
 import { ActiveExam, Exam, Student } from "@/lib/exam-layout";
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";

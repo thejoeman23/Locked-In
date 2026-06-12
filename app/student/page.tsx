@@ -1,6 +1,6 @@
 "use client";
 
-import { StudentLayout } from "@/components/student-layout";
+import { StudentLayout } from "@/components/student/student-layout";
 
 import { Exam, StudentFinishReason, StudentStatus, TerminationTerms } from "@/lib/exam-layout";
 import { useEffect, useRef, useState } from "react";

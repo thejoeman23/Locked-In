@@ -1,6 +1,6 @@
 "use client"
 
-import { Input } from "./ui/input";
+import { Input } from "@/components/ui/input";
 import { Exam } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 

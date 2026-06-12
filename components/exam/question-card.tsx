@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react";
-import { DeleteButton } from "@/components/delete-button";
+import { DeleteButton } from "@/components/common/delete-button";
 import { cn } from "@/lib/utils";
 
 type Props = {

@@ -1,7 +1,7 @@
 "use client"
 
 import type { Exam, Student } from "@/lib/exam-layout";
-import { RosterCreator } from "./roster-creator";
+import { RosterCreator } from "@/components/teacher/roster-creator";
 
 type Props = {
   examStatus: Exam["status"];

@@ -1,14 +1,9 @@
 "use client"
 
-import { Circle, CircleCheck, Clock3, CirclePlus } from "lucide-react";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { DeleteButton } from "@/components/delete-button";
-import { RosterPasteBox } from "@/components/roster-paste-box";
+import { Circle, CircleCheck, Clock3 } from "lucide-react";
+import { DeleteButton } from "@/components/common/delete-button";
 import type { Exam, Student } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
 
 type StudentDisplayState = "not-connected" | "connected" | "in-progress" | "submitted";
 
@@ -16,77 +11,21 @@ type Props = {
   examStatus: Exam["status"];
   roster: string[];
   students: Student[];
-  onAddRosterName: (name: string) => void;
-  onAddRosterNames: (names: string[]) => void;
   onRemoveRosterName: (name: string) => void;
 };
 
-export function RosterCreator({ examStatus, roster, students, onAddRosterName, onAddRosterNames, onRemoveRosterName }: Props) {
-  const [studentName, setStudentName] = useState("");
+export function TeacherDashboard({ examStatus, roster, students, onRemoveRosterName }: Props) {
   const displayStudents = getDisplayStudents(roster, students, examStatus);
-
-  function submitStudentName() {
-    const name = studentName.trim();
-
-    if (!name) {
-      return;
-    }
-
-    onAddRosterName(name);
-    setStudentName("");
-  }
-
-  function handleAddStudentButton() {
-    const inputElement = document.getElementById("student-name-input") as HTMLInputElement | null;
-    if (!inputElement) return;
-
-    if (inputElement.value === "") {
-      inputElement.focus();
-    } else {
-      submitStudentName(); 
-    }
-  }
 
   return (
     <aside className="h-fit rounded-xl border bg-background p-5 shadow-xs">
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 mb-2">
         <h2 className="text-xl">Student Dashboard</h2>
-        <p className="text-sm text-muted-foreground">
-          Type a student&apos;s name and press Enter to allow them into this exam.
-        </p>
       </div>
-
-      <div className="mt-4 flex flex-row items-center gap-2">
-        <Input
-          value={studentName}
-          onChange={(event) => setStudentName(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              document.getElementById("submit-student-name-button")?.click();
-            }
-          }}
-          placeholder="Student name"
-          id="student-name-input"
-        />
-        <Button
-          id="submit-student-name-button"
-          onClick={handleAddStudentButton}
-          size="icon"
-          aria-label="Add student"
-        >
-          <CirclePlus />
-        </Button>
-      </div>
-
-      <p className="my-2 text-center text-xs text-muted-foreground">OR</p>
-      <RosterPasteBox onPasteRoster={onAddRosterNames} />
-
-      <Separator className="my-5" />
 
       <div className="min-h-24 rounded-md border bg-muted/20 p-3">
         {displayStudents.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No students added yet.</p>
+          <p className="text-sm text-muted-foreground">Switch to the Roster View to add students.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {displayStudents.map((student) => (

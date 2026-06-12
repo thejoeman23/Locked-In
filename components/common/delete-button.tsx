@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AlertButton } from "./alert-button";
+import { AlertButton } from "@/components/common/alert-button";
 
 type Props = Omit<React.ComponentProps<"button">, "children"> & {
   label?: string;

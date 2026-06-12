@@ -1,6 +1,6 @@
 "use client"
 
-import { ExamDocument } from "@/components/exam-document";
+import { ExamDocument } from "@/components/exam/exam-document";
 import type { Exam } from "@/lib/exam-layout";
 
 type Props = {

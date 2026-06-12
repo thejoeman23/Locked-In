@@ -1,6 +1,6 @@
 "use client"
 
-import { QuestionCard } from "@/components/question-card";
+import { QuestionCard } from "@/components/exam/question-card";
 import { MMCQuestion as MMCQuestionType } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 

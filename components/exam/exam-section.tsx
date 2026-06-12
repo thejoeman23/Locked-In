@@ -2,7 +2,7 @@
 
 import { Section } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
-import { DeleteButton } from "./delete-button";
+import { DeleteButton } from "@/components/common/delete-button";
 
 type Props = {
   section: Section;

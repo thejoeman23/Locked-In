@@ -1,6 +1,6 @@
 "use client"
 
-import { QuestionCard } from "@/components/question-card";
+import { QuestionCard } from "@/components/exam/question-card";
 import { SAQuestion as SAQuestionType } from "@/lib/exam-layout";
 
 type Props = {

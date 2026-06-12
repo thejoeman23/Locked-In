@@ -1,7 +1,7 @@
 "use client"
 
 import { CircleCheck, Eye, Play, Square, Undo2 } from "lucide-react";
-import { AlertButton } from "@/components/alert-button";
+import { AlertButton } from "@/components/common/alert-button";
 import { Exam } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 

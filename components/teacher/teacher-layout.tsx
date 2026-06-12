@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react";
-import { ExamTitle } from "@/components/exam-title";
+import { ExamTitle } from "@/components/exam/exam-title";
 import { Button } from "@/components/ui/button";
-import { BackButton } from "@/components/back-button";
-import { AdministerView } from "@/components/teacher-administer-view";
-import { EditView } from "@/components/teacher-edit-view";
-import { RosterView } from "@/components/teacher-roster-view";
-import { SubmissionsView } from "@/components/teacher-submissions-view";
+import { BackButton } from "@/components/common/back-button";
+import { AdministerView } from "@/components/teacher/teacher-administer-view";
+import { EditView } from "@/components/teacher/teacher-edit-view";
+import { RosterView } from "@/components/teacher/teacher-roster-view";
+import { SubmissionsView } from "@/components/teacher/teacher-submissions-view";
 import { Exam, Student } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 
@@ -103,8 +103,6 @@ export function TeacherLayout({ exam, examCode, roster, students, updateExam, on
           roster={roster}
           students={students}
           updateExam={updateExam}
-          onAddRosterName={onAddRosterName}
-          onAddRosterNames={onAddRosterNames}
           onRemoveRosterName={onRemoveRosterName}
         />
       )}

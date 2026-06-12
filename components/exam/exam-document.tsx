@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { BookOpen, Highlighter, ListChecks, MessageSquareText } from "lucide-react";
-import { DocumentAddButton } from "@/components/document-add-button";
-import { ExamSection } from "@/components/exam-section";
-import { ExamTitle } from "@/components/exam-title";
-import { HighlightWordQuestion } from "@/components/highlight-word-question";
-import { MMCQuestion } from "@/components/mmc-question";
-import { SAQuestion } from "@/components/sa-question";
-import { StarButton } from "@/components/star";
+import { DocumentAddButton } from "@/components/exam/document-add-button";
+import { ExamSection } from "@/components/exam/exam-section";
+import { ExamTitle } from "@/components/exam/exam-title";
+import { HighlightWordQuestion } from "@/components/exam/highlight-word-question";
+import { MMCQuestion } from "@/components/exam/mmc-question";
+import { SAQuestion } from "@/components/exam/sa-question";
+import { StarButton } from "@/components/exam/star";
 import {
   Exam,
   ExamQuestion,

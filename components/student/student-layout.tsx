@@ -1,14 +1,14 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react";
-import { ExamDocument } from "@/components/exam-document";
+import { ExamDocument } from "@/components/exam/exam-document";
 import { Exam, StudentFinishReason, StudentStatus } from "@/lib/exam-layout";
-import { Field, FieldTitle, FieldDescription } from "./ui/field";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { AlertButton } from "./alert-button";
-import { BackButton } from "./back-button"; 
-import { ErrorMessage } from "./error-message";
+import { Field, FieldTitle, FieldDescription } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { AlertButton } from "@/components/common/alert-button";
+import { BackButton } from "@/components/common/back-button"; 
+import { ErrorMessage } from "@/components/common/error-message";
 
 type Props = { 
   exam: Exam | null;
