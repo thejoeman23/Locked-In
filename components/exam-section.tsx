@@ -2,17 +2,18 @@
 
 import { Section } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
+import { DeleteButton } from "./delete-button";
 
 type Props = {
   section: Section;
   teacherView: boolean;
   className?: string;
   children?: React.ReactNode;
-  titleAction?: React.ReactNode;
+  onDelete?: () => void;
   onTitleChange?: (title: string) => void;
 };
 
-export function ExamSection({ section, teacherView, className, children, titleAction, onTitleChange }: Props) {
+export function ExamSection({ section, teacherView, className, children, onDelete, onTitleChange }: Props) {
   return (
     <section className={cn("space-y-5", className)}>
       <div className="flex items-center gap-3 border-b">
@@ -26,7 +27,7 @@ export function ExamSection({ section, teacherView, className, children, titleAc
         ) : (
           <h2 className="min-w-0 flex-1 py-2 text-xl leading-7">{section.title}</h2>
         )}
-        {titleAction}
+        <DeleteButton label="Delete section" onClick={onDelete}/>
       </div>
 
       <div className="space-y-4">{children}</div>

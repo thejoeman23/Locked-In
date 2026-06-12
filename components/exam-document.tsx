@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { BookOpen, Highlighter, ListChecks, MessageSquareText } from "lucide-react";
-import { DeleteButton } from "@/components/delete-button";
 import { DocumentAddButton } from "@/components/document-add-button";
 import { ExamSection } from "@/components/exam-section";
 import { ExamTitle } from "@/components/exam-title";
@@ -284,9 +283,7 @@ export function ExamDocument({
       <ExamSection
         section={section}
         teacherView={teacherView}
-        titleAction={isActive(item) && (
-          <DeleteButton label="Delete section" onClick={() => deleteItem(item)} />
-        )}
+        onDelete={() => deleteItem(item)}
         onTitleChange={(title) => updateSection(sectionIndex, { ...section, title })}
       >
         {section.items.map((question, questionIndex) => (

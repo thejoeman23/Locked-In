@@ -31,7 +31,7 @@ export function RosterPasteBox({ className, onPasteRoster }: Props) {
         className
       )}
     >
-      Paste from Excel
+      Paste Class Roster from Excel
     </button>
   );
 }

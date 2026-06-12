@@ -18,7 +18,25 @@ export default function Home() {
   const [exam, setExam] = useState<Exam>({
     title: "",
     status: "setup",
-    content: []
+    content: [
+      {
+        title: "Sample Section",
+        items: [
+          {
+            text: "This is a sample multiple choice question.",
+            worth: 1,
+            options: [
+              "This option is incorrect.",
+              "This option is correct.",
+              "This option is incorrect."
+            ],
+            correctOption: 1,
+            answer: "",
+            starred: false
+          }
+        ]
+      }
+    ]
   });
 
   useEffect(() => {

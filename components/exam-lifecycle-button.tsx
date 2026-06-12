@@ -1,6 +1,6 @@
 "use client"
 
-import { Undo2 } from "lucide-react";
+import { CircleCheck, Eye, Play, Square, Undo2 } from "lucide-react";
 import { AlertButton } from "@/components/alert-button";
 import { Exam } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
@@ -39,11 +39,17 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
   }
 
   const canGoBack = exam.status === "waiting" || exam.status === "live";
+  const LifecycleIcon = {
+    setup: Eye,
+    waiting: Play,
+    live: Square,
+    terminated: CircleCheck
+  }[exam.status];
 
   return (
     <div
       className={cn(
-        "inline-flex h-9 overflow-hidden rounded-md border",
+        "flex min-h-14 w-full overflow-hidden rounded-lg border p-1 shadow-xs transition-colors",
         exam.status === "setup" && "border-sky-200 bg-sky-50 text-sky-700",
         exam.status === "waiting" && "border-emerald-200 bg-emerald-50 text-emerald-700",
         exam.status === "live" && "border-amber-200 bg-amber-50 text-amber-800",
@@ -62,29 +68,30 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
           aria-label={exam.status === "live" ? "Return exam to waiting" : "Return exam to setup"}
           title={exam.status === "live" ? "Return exam to waiting" : "Return exam to setup"}
           onClick={handleBack}
-          className="h-9 w-9 rounded-none border-0 bg-transparent px-0 text-current shadow-none hover:bg-black/5 hover:text-current"
+          className="h-auto w-12 self-stretch rounded-md border-0 bg-transparent px-0 text-current shadow-none hover:bg-black/5 hover:text-current"
         >
           <Undo2 className="size-4" />
         </AlertButton>
       )}
-      {canGoBack && <div className="h-full w-px bg-current/20" />}
       <AlertButton
         triggersAlert={exam.status === "live" || exam.status === "waiting"}
         alertDescription={exam.status === "live" ? 
           "This action will end the exam for all students. Their finished exams will be saved for you to download.":
           "This action will start the exam for all students. Make sure everyone is ready before you start."}
+        confirmVariant={exam.status === "live" ? "destructive" : undefined}
         type="button"
         variant="ghost"
-        size="sm"
+        size="lg"
         onClick={handleButton}
-        className="h-9 min-w-32 rounded-none border-0 bg-transparent px-4 text-sm text-current shadow-none hover:bg-black/5 hover:text-current"
+        className="h-auto min-h-12 flex-1 rounded-md border-0 bg-background/80 px-4 text-base font-semibold text-current shadow-xs hover:bg-background hover:text-current disabled:bg-transparent disabled:shadow-none"
         disabled={exam.status === "terminated"}
         {...props}
       >
+        <LifecycleIcon className="size-4" />
         {exam.status === "setup" && "Reveal Exam Join Code"}
         {exam.status === "waiting" && "Start Exam"}
         {exam.status === "live" && "End Exam"}
-        {exam.status === "terminated" && "Exam Terminated"}
+        {exam.status === "terminated" && "Exam Ended"}
       </AlertButton>
     </div>
   );
