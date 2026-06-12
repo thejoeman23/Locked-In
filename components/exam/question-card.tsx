@@ -30,7 +30,7 @@ export function QuestionCard({
   onDelete
 }: Props) {
   return (
-    <div className={cn("rounded-lg border bg-background/80 p-4 shadow-xs transition-colors", teacherView ? "hover:border-slate-300 hover:bg-slate-50/60" : undefined, className)}>
+    <div className={cn("rounded-lg border bg-background/80 p-4 shadow-xs", className)}>
       <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-wide text-muted-foreground">
         <span>{label}</span>
         {teacherView ? (

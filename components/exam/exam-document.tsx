@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react";
-import { BookOpen, Highlighter, ListChecks, MessageSquareText } from "lucide-react";
+import { BookOpen, Highlighter, ListChecks, MessageSquareText, Table2 } from "lucide-react";
+import { DefenitionsTableQuestion } from "@/components/exam/defenitions-table-question";
 import { DocumentAddButton } from "@/components/exam/document-add-button";
 import { ExamSection } from "@/components/exam/exam-section";
 import { ExamTitle } from "@/components/exam/exam-title";
@@ -10,6 +11,7 @@ import { MMCQuestion } from "@/components/exam/mmc-question";
 import { SAQuestion } from "@/components/exam/sa-question";
 import { StarButton } from "@/components/exam/star";
 import {
+  DefenitionsTableQuestion as DefenitionsTableQuestionType,
   Exam,
   ExamQuestion,
   MMCQuestion as MMCQuestionType,
@@ -39,7 +41,7 @@ export function ExamDocument({
   className,
   onExamChange
 }: Props) {
-  const [activeItem, setActiveItem] = useState<ActiveItem>({ type: "document" });
+  const [activeItem, setActiveItem] = useState<ActiveItem>(() => getInitialActiveItem(exam));
   const [deletingItem, setDeletingItem] = useState<ActiveItem | null>(null);
 
   // Every edit creates a new Exam object so the visible document is always redrawn from data.
@@ -78,7 +80,7 @@ export function ExamDocument({
       items: []
     });
 
-    setActiveItem({ type: "section", sectionIndex: insertIndex });
+    setActiveItem({ type: "document" });
     onExamChange?.({ ...exam, content });
   }
 
@@ -139,6 +141,17 @@ export function ExamDocument({
     });
   }
 
+  function addDefenitionsTableQuestion() {
+    addQuestion({
+      text: "",
+      worth: 1,
+      starred: false,
+      defenitions: [""],
+      correctAnswers: [""],
+      answers: [""]
+    });
+  }
+
   // Mark first, remove after the CSS exit animation finishes.
   function deleteItem(item: ActiveItem) {
     if (item.type === "document" || deletingItem) {
@@ -166,7 +179,7 @@ export function ExamDocument({
     }, DELETE_ANIMATION_MS);
   }
 
-  // Active checks are centralized so section/question highlighting and control placement stay consistent.
+  // Hover/focus state decides where new sections or questions should be inserted.
   function isActive(item: ActiveItem) {
     if (activeItem.type !== item.type) {
       return false;
@@ -224,7 +237,15 @@ export function ExamDocument({
         questionId={questionId}
         teacherView={teacherView}
         studentAction={studentAction}
-        onDelete={isActive(item) ? () => deleteItem(item) : undefined}
+        onDelete={() => deleteItem(item)}
+        onQuestionChange={(updatedQuestion) => updateQuestion(sectionIndex, questionIndex, updatedQuestion)}
+      />
+    ) : isDefenitionsTableQuestion(question) ? (
+      <DefenitionsTableQuestion
+        question={question}
+        teacherView={teacherView}
+        studentAction={studentAction}
+        onDelete={() => deleteItem(item)}
         onQuestionChange={(updatedQuestion) => updateQuestion(sectionIndex, questionIndex, updatedQuestion)}
       />
     ) : isHighlightQuestion(question) ? (
@@ -232,7 +253,7 @@ export function ExamDocument({
         question={question}
         teacherView={teacherView}
         studentAction={studentAction}
-        onDelete={isActive(item) ? () => deleteItem(item) : undefined}
+        onDelete={() => deleteItem(item)}
         onQuestionChange={(updatedQuestion) => updateQuestion(sectionIndex, questionIndex, updatedQuestion)}
       />
     ) : (
@@ -240,7 +261,7 @@ export function ExamDocument({
         question={question as SAQuestionType}
         teacherView={teacherView}
         studentAction={studentAction}
-        onDelete={isActive(item) ? () => deleteItem(item) : undefined}
+        onDelete={() => deleteItem(item)}
         onQuestionChange={(updatedQuestion) => updateQuestion(sectionIndex, questionIndex, updatedQuestion)}
       />
     );
@@ -252,10 +273,7 @@ export function ExamDocument({
     return (
       <div
         key={questionId}
-        onClick={(event) => {
-          event.stopPropagation();
-          setActiveItem(item);
-        }}
+        onMouseEnter={() => setActiveItem(item)}
         onFocus={(event) => {
           event.stopPropagation();
           setActiveItem(item);
@@ -263,10 +281,7 @@ export function ExamDocument({
         className="rounded-lg"
       >
         <div
-          className={cn(
-            "exam-card-motion rounded-lg transition-colors",
-            isActive(item) && "ring-2 ring-sky-200"
-          )}
+          className="exam-card-motion rounded-lg"
           data-deleting={isDeleting(item) || undefined}
         >
           {questionComponent}
@@ -278,12 +293,11 @@ export function ExamDocument({
 
   // Draw a section from its Section object, then place contextual controls under it when active.
   function renderExamSection(section: Section, sectionIndex: number) {
-    const item: ActiveItem = { type: "section", sectionIndex };
     const sectionContent = (
       <ExamSection
         section={section}
         teacherView={teacherView}
-        onDelete={() => deleteItem(item)}
+        onDelete={() => deleteItem({ type: "section", sectionIndex })}
         onTitleChange={(title) => updateSection(sectionIndex, { ...section, title })}
       >
         {section.items.map((question, questionIndex) => (
@@ -299,20 +313,14 @@ export function ExamDocument({
     return (
       <div
         key={`section-${sectionIndex}`}
-        onClick={() => setActiveItem(item)}
-        onFocus={() => setActiveItem(item)}
         className="rounded-lg"
       >
         <div
-          className={cn(
-            "exam-card-motion rounded-lg border border-transparent p-4 transition-colors hover:border-slate-200 hover:bg-slate-50/60",
-            isActive(item) && "border-sky-200 bg-sky-50/40"
-          )}
-          data-deleting={isDeleting(item) || undefined}
+          className="exam-card-motion rounded-lg border border-transparent p-4"
+          data-deleting={isDeleting({ type: "section", sectionIndex }) || undefined}
         >
           {sectionContent}
         </div>
-        {renderAddControlsRow(isActive(item) && !isDeleting(item))}
       </div>
     );
   }
@@ -332,7 +340,7 @@ export function ExamDocument({
   // Reused control group; its placement changes depending on the active item.
   function renderAddControls() {
     return (
-      <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
+      <div className="flex flex-wrap items-center justify-center gap-2">
         <DocumentAddButton icon={<BookOpen className="size-4" />} onClick={addSection}>
           Add section
         </DocumentAddButton>
@@ -344,6 +352,9 @@ export function ExamDocument({
         </DocumentAddButton>
         <DocumentAddButton icon={<Highlighter className="size-4" />} onClick={addHighlightQuestion}>
           Add highlight word
+        </DocumentAddButton>
+        <DocumentAddButton icon={<Table2 className="size-4" />} onClick={addDefenitionsTableQuestion}>
+          Add definitions table
         </DocumentAddButton>
       </div>
     );
@@ -360,7 +371,7 @@ export function ExamDocument({
         onFocus={(event) => event.stopPropagation()}
         className={cn(
           "flex justify-center overflow-hidden transition-[max-height,opacity,transform,margin-top] duration-200 ease-out",
-          visible ? "mt-4 max-h-12 translate-y-0 opacity-100" : "mt-0 max-h-0 -translate-y-1 opacity-0 pointer-events-none"
+          visible ? "mt-4 max-h-24 translate-y-0 opacity-100" : "mt-0 max-h-0 -translate-y-1 opacity-0 pointer-events-none"
         )}
         aria-hidden={!visible}
       >
@@ -410,10 +421,28 @@ function countQuestions(exam: Exam) {
   return exam.content.reduce((total, section) => total + section.items.length, 0);
 }
 
+function getInitialActiveItem(exam: Exam): ActiveItem {
+  const firstSectionWithQuestion = exam.content.findIndex((section) => section.items.length > 0);
+
+  if (firstSectionWithQuestion === -1) {
+    return { type: "document" };
+  }
+
+  return {
+    type: "question",
+    sectionIndex: firstSectionWithQuestion,
+    questionIndex: 0
+  };
+}
+
 function isMMCQuestion(question: ExamQuestion): question is MMCQuestionType {
   return "options" in question;
 }
 
 function isHighlightQuestion(question: ExamQuestion): question is UnderlineQuestion {
   return "correctOptions" in question;
+}
+
+function isDefenitionsTableQuestion(question: ExamQuestion): question is DefenitionsTableQuestionType {
+  return "defenitions" in question;
 }

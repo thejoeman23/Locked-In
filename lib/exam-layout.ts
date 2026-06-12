@@ -39,7 +39,7 @@ export interface Question {
     starred: boolean;
 }
 
-export type ExamQuestion = MMCQuestion | SAQuestion | UnderlineQuestion;
+export type ExamQuestion = MMCQuestion | SAQuestion | UnderlineQuestion | DefenitionsTableQuestion;
 
 export interface MMCQuestion extends Question {
     options: string[];
@@ -55,4 +55,10 @@ export interface UnderlineQuestion extends Question {
     passage: string;
     answer: number[] | null;
     correctOptions: number[];
+}
+
+export interface DefenitionsTableQuestion extends Question {
+    defenitions: string[];
+    correctAnswers: string[];
+    answers: string[];
 }
