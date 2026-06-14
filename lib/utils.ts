@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { Exam, Roster } from "./exam-layout";
+
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -38,4 +40,40 @@ export function generateExamID(): string {
     }
 
     return id;
+}
+
+export function NewExam(): Exam {
+    return {
+        title: "",
+        id: generateExamID(),
+        last_updated: new Date().toISOString(),
+        status: "setup",
+        content: [
+            {
+                title: "Sample Section",
+                items: [
+                    {
+                        text: "This is a sample multiple choice question.",
+                        worth: 1,
+                        options: [
+                            "This option is incorrect.",
+                            "This option is correct.",
+                            "This option is incorrect."
+                        ],
+                        correctOption: 1,
+                        answer: null,
+                        starred: false
+                    }
+                ]
+            }
+        ]
+    };
+}
+
+export function NewRoster(name = "Untitled Roster"): Roster {
+    return {
+        id: generateExamID(),
+        name,
+        names: []
+    };
 }

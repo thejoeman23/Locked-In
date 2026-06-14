@@ -67,6 +67,26 @@ io.on("connection", (socket) => {
         console.log(`Updated roster for exam ${examId}:`, activeExam.roster);
     });
 
+    socket.on("exam:rejointeacher", (examId: string) => {
+        const activeExamEntry = Array.from(activeExams.entries()).find(([, activeExam]) => activeExam.exam.id === examId);
+        if (!activeExamEntry) {
+            socket.emit("exam:examnotfound");
+            console.warn(`Teacher attempted to rejoin an exam with the id of ${examId}, but it was not an active exam.`);
+            return;
+        }
+
+        const [examCode, activeExam] = activeExamEntry;
+
+        if (!socket.rooms.has(examCode)) {
+            socket.join(examCode);
+            console.log(`Teacher has regained control of exam ${examCode}`);
+        } else {
+            console.log(`Teacher already controls exam ${examCode}`);
+        }
+
+        socket.emit("exam:teacherrejoined", examCode, activeExam);
+    });
+
     socket.on("exam:kickstudent", (examId: string, name: string) => {
         const normalizedName = normalizeStudentName(name);
         const activeExam = activeExams.get(examId);

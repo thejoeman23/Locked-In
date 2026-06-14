@@ -14,8 +14,7 @@ export const localTeacherStorage: TeacherStorage = {
 
   async getExam(id: string) {
     const exams = await this.listExams();
-    const exam = exams.filter((item) => item.id === id)[0];
-    return exam as Exam;
+    return exams.find((item) => item.id === id) ?? null;
   },
 
   async deleteExam(id: string) {
@@ -26,7 +25,7 @@ export const localTeacherStorage: TeacherStorage = {
 
 
   async listRosters() {
-    return JSON.parse(localStorage.getExam("teacher:rosters") ?? "[]");
+    return JSON.parse(localStorage.getItem("teacher:rosters") ?? "[]");
   },
 
   async saveRoster(roster: Roster) {

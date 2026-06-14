@@ -1,0 +1,58 @@
+{
+  "title": "ENG3UI Final Exam",
+  "id": "",
+  "status": "setup",
+  "content": [
+    {
+      "title": "Section A",
+      "items": [
+        {
+          "text": "What is the name of the male protagonist in Shakespeare's Romeo and Juliet?",
+          "worth": 1,
+          "starred": false,
+          "options": [
+            "Count Paris",
+            "Tybalt",
+            "Romeo",
+            "Lord Capulet"
+          ],
+          "answer": null,
+          "correctOption": 2
+        },
+        {
+          "text": "Briefly describe the ending of Romeo and Juliet.",
+          "worth": 3,
+          "starred": false,
+          "answer": null
+        },
+        {
+          "text": "Highlight the words in the quotation that show conflict between love and violence.",
+          "worth": 2,
+          "starred": false,
+          "passage": "These violent delights have violent ends and in their triumph die like fire and powder.",
+          "answer": null,
+          "correctOptions": [
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "text": "Match each definition to the correct literary or social term.",
+          "worth": 4,
+          "starred": false,
+          "defenitions": [
+            "The act of discriminating against someone because of their race or ethnicity."
+          ],
+          "correctAnswers": [
+            "Racism"
+          ],
+          "answers": [
+            ""
+          ]
+        }
+      ]
+    }
+  ]
+}

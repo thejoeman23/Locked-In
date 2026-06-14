@@ -1,208 +1,146 @@
 "use client";
 
-import { TeacherLayout } from "@/components/teacher/teacher-layout";
-import { ActiveExam, Exam, Student } from "@/lib/exam-layout";
-import { generateExamID } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { FileText, Plus, Upload } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import defaultTemplate from "@/exam_templates/default.json";
+import mockTemplate from "@/exam_templates/mock.json";
+import { ExamCard } from "@/components/teacher/exam-card";
+import type { Exam } from "@/lib/exam-layout";
+import { localTeacherStorage } from "@/lib/local-teacher-storage";
+import { generateExamID, NewExam } from "@/lib/utils";
 
-const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3001";
+type TemplateTile = {
+  title: string;
+  icon: React.ReactNode;
+  createExam: () => Exam;
+};
 
-export default function Home() {
-  // Refs keep connection/session objects available without causing re-renders.
-  const socketRef = useRef<Socket | null>(null);
-  const examCodeRef = useRef<string | null>(null);
-  const rosterRef = useRef<string[]>([]);
-  const [examCode, setExamCode] = useState<string | null>(null);
-  const [roster, setRoster] = useState<string[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [exam, setExam] = useState<Exam>({
-    title: "",
-    id: generateExamID(),
-    status: "setup",
-    content: [
-      {
-        title: "Sample Section",
-        items: [
-          {
-            text: "This is a sample multiple choice question.",
-            worth: 1,
-            options: [
-              "This option is incorrect.",
-              "This option is correct.",
-              "This option is incorrect."
-            ],
-            correctOption: 1,
-            answer: "",
-            starred: false
-          }
-        ]
-      }
-    ]
-  });
+const templateTiles: TemplateTile[] = [
+  {
+    title: "Blank exam",
+    icon: <Plus className="size-12 text-sky-600" strokeWidth={2.5} />,
+    createExam: () => withNewExamId(NewExam(), "Untitled exam")
+  },
+  {
+    title: "Sample exam",
+    icon: <FileText className="size-12 text-sky-600" strokeWidth={2.2} />,
+    createExam: () => withNewExamId(defaultTemplate as Exam, "Sample exam")
+  },
+  {
+    title: "ENG3UI mock",
+    icon: <FileText className="size-12 text-emerald-600" strokeWidth={2.2} />,
+    createExam: () => withNewExamId(mockTemplate as Exam)
+  },
+  {
+    title: "Create from PDF",
+    icon: <Upload className="size-12 text-slate-500" strokeWidth={2.2} />,
+    createExam: () => withNewExamId(NewExam(), "Imported PDF exam")
+  }
+];
+
+export default function TeacherHome() {
+  const router = useRouter();
+  const [recentExams, setRecentExams] = useState<Exam[]>([]);
 
   useEffect(() => {
-    // The teacher owns a single socket connection for this page session.
-    const socket = io(socketUrl);
-    socketRef.current = socket;
+    let isMounted = true;
 
-    socket.on("connect", () => {
-      console.log("Connected to socket:", socket.id);
-    });
+    async function loadRecentExams() {
+      const exams = await localTeacherStorage.listExams();
 
-    socket.on("connect_error", (error) => {
-      console.error("Exam socket connection failed:", error.message);
-    });
+      if (isMounted) {
+        setRecentExams([...exams].reverse());
+      }
+    }
 
-    socket.on("exam:created", (createdExamCode) => {
-      console.log("Exam created with code:", createdExamCode);
-      examCodeRef.current = createdExamCode;
-      setExamCode(createdExamCode);
-      socket.emit("exam:updateroster", createdExamCode, rosterRef.current);
-    });
-
-    socket.on("exam:update", (activeExam: ActiveExam) => {
-      rosterRef.current = activeExam.roster;
-      setRoster(activeExam.roster);
-      setStudents(activeExam.students);
-    });
+    loadRecentExams();
 
     return () => {
-      // Avoid keeping stale socket event handlers alive after leaving /teacher.
-      socket.disconnect();
-      socketRef.current = null;
-      examCodeRef.current = null;
-      rosterRef.current = [];
-      setExamCode(null);
-      setRoster([]);
-      setStudents([]);
+      isMounted = false;
     };
   }, []);
 
-  function updateExam(newExam: Exam) {
-    console.log("Updating exam:", newExam);
-    const currentStatus = exam.status;
-    const nextStatus = newExam.status;
-    const examCode = examCodeRef.current;
-
-    // Status transitions are the client-side trigger for server exam events.
-    if (currentStatus === "setup" && nextStatus === "waiting") {
-      console.log("Creating exam on server...");
-      socketRef.current?.emit("exam:create", newExam, rosterRef.current);
-    }
-
-    if (currentStatus === "waiting" && nextStatus === "live") {
-      console.log("Starting exam on server...");
-      socketRef.current?.emit("exam:start", examCode, newExam);
-    }
-
-    if (currentStatus === "live" && nextStatus === "waiting") {
-      console.log("Setting exam back to waiting...");
-      socketRef.current?.emit("exam:setback", examCode);
-    }
-
-    if (currentStatus === "waiting" && nextStatus === "setup") {
-      console.log("Returning exam to setup...");
-      socketRef.current?.emit("exam:setup", examCode);
-      examCodeRef.current = null;
-      setExamCode(null);
-      setStudents([]);
-    }
-
-    if (currentStatus === "live" && nextStatus === "terminated") {
-      console.log("Terminating exam on server...");
-      socketRef.current?.emit("exam:terminate", examCode, "manual");
-    }
-
-    if (
-      examCode &&
-      currentStatus === "waiting" &&
-      nextStatus !== "setup"
-    ) {
-      socketRef.current?.emit("exam:update", examCode, newExam);
-    }
-
-    setExam(newExam);
+  async function createExam(createExamFromTemplate: () => Exam) {
+    const exam = createExamFromTemplate();
+    await localTeacherStorage.saveExam(exam);
+    router.push(`/teacher/${exam.id}`);
   }
 
-  function addRosterName(name: string) {
-    const trimmedName = normalizeStudentName(name);
-
-    if (!trimmedName) {
-      return;
-    }
-
-    const nextRoster = Array.from(new Set([...rosterRef.current, trimmedName]));
-    const currentExamCode = examCodeRef.current ?? examCode;
-
-    rosterRef.current = nextRoster;
-    setRoster(nextRoster);
-
-    if (currentExamCode) {
-      console.log("Updating roster on server:", currentExamCode, nextRoster);
-      socketRef.current?.emit("exam:updateroster", currentExamCode, nextRoster);
-    } else {
-      console.log("Roster updated locally before exam code exists:", nextRoster);
-    }
-  }
-
-  function addRosterNames(names: string[]) {
-    const nextNames = names.map(normalizeStudentName).filter(Boolean);
-
-    if (nextNames.length === 0) {
-      return;
-    }
-
-    const nextRoster = Array.from(new Set([...rosterRef.current, ...nextNames]));
-    const currentExamCode = examCodeRef.current ?? examCode;
-
-    rosterRef.current = nextRoster;
-    setRoster(nextRoster);
-
-    if (currentExamCode) {
-      console.log("Updating roster on server:", currentExamCode, nextRoster);
-      socketRef.current?.emit("exam:updateroster", currentExamCode, nextRoster);
-    } else {
-      console.log("Roster updated locally before exam code exists:", nextRoster);
-    }
-  }
-
-  function removeRosterName(name: string) {
-    const normalizedName = normalizeStudentName(name);
-    const nextRoster = rosterRef.current.filter((studentName) => studentName !== normalizedName);
-    const currentExamCode = examCodeRef.current ?? examCode;
-    const student = students.find((student) => student.name === normalizedName);
-
-    rosterRef.current = nextRoster;
-    setRoster(nextRoster);
-
-    if (currentExamCode) {
-      if (student?.connected) {
-        console.log("Kicking student from exam:", currentExamCode, normalizedName);
-        socketRef.current?.emit("exam:kickstudent", currentExamCode, normalizedName);
-      }
-
-      console.log("Updating roster on server:", currentExamCode, nextRoster);
-      socketRef.current?.emit("exam:updateroster", currentExamCode, nextRoster);
-    } else {
-      console.log("Roster updated locally before exam code exists:", nextRoster);
-    }
+  function openExam(exam: Exam) {
+    router.push(`/teacher/${exam.id}`);
   }
 
   return (
-    <TeacherLayout
-      exam={exam}
-      examCode={examCode}
-      roster={roster}
-      students={students}
-      updateExam={updateExam}
-      onAddRosterName={addRosterName}
-      onAddRosterNames={addRosterNames}
-      onRemoveRosterName={removeRosterName}
-    />
+    <main className="min-h-screen bg-background text-foreground">
+      <header className="border-b bg-background">
+        <div className="flex h-16 items-center px-6">
+          <Link href="/" className="flex items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+            <div className="flex size-9 items-center justify-center rounded-md bg-sky-600 text-white">
+              <FileText className="size-5" />
+            </div>
+            <h1 className="text-xl font-medium">Locked In</h1>
+          </Link>
+        </div>
+      </header>
+
+      <section className="bg-slate-100">
+        <div className="mx-auto max-w-6xl px-6 py-8">
+          <h2 className="text-base font-medium">Create a new exam</h2>
+          <div className="mt-5 grid grid-cols-[repeat(auto-fill,9rem)] gap-4">
+            {templateTiles.map((template) => (
+              <ExamCard
+                key={template.title}
+                title={template.title}
+                ariaLabel={`Create ${template.title}`}
+                preview={template.icon}
+                onOpen={() => createExam(template.createExam)}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 py-8">
+        <h2 className="text-base font-medium">Recent exams</h2>
+        {recentExams.length === 0 ? (
+          <div className="mt-8 rounded-lg border border-dashed bg-slate-50 px-6 py-12 text-center text-sm text-muted-foreground">
+            No recent exams yet.
+          </div>
+        ) : (
+          <div className="mt-5 grid grid-cols-[repeat(auto-fill,9rem)] gap-4">
+            {recentExams.map((exam) => (
+              <ExamCard
+                key={exam.id}
+                title={exam.title || "Untitled exam"}
+                ariaLabel={`Open ${exam.title || "Untitled exam"}`}
+                preview={<FileText className="size-14 text-sky-600" strokeWidth={1.8} />}
+                metadata={getExamSummary(exam)}
+                previewClassName="bg-slate-50"
+                onOpen={() => openExam(exam)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
 
-function normalizeStudentName(name: string) {
-  return name.trim().replace(/\s+/g, " ").toUpperCase();
+function withNewExamId(template: Exam, fallbackTitle?: string): Exam {
+  return {
+    ...structuredClone(template),
+    id: generateExamID(),
+    last_updated: new Date().toISOString(),
+    title: template.title || fallbackTitle || "Untitled exam",
+    status: "setup"
+  };
+}
+
+function getExamSummary(exam: Exam) {
+  const sectionCount = exam.content.length;
+  const questionCount = exam.content.reduce((total, section) => total + section.items.length, 0);
+
+  return `${sectionCount} ${sectionCount === 1 ? "section" : "sections"} · ${questionCount} ${questionCount === 1 ? "question" : "questions"}`;
 }

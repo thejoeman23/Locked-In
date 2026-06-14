@@ -30,6 +30,7 @@ export interface ActiveExam {
 export interface Exam {
     title: string;
     id: string;
+    last_updated: string;
     // High-level lifecycle used by the teacher button and socket events.
     status: "setup" | "waiting" | "live" | "terminated";
     content: Section[];
