@@ -57,7 +57,7 @@ export function TeacherLayout({ exam, examCode, roster, students, updateExam, on
           </div>
 
           <div className="ml-6 flex min-w-0 items-center justify-end gap-2">
-            <div className="inline-flex rounded-md border bg-muted/40 p-1">
+            <div className="inline-flex rounded-md border border-sky-200 bg-sky-50 p-1">
               {teacherModes.map((teacherMode) => (
                 <Button
                   key={teacherMode.value}
@@ -66,8 +66,8 @@ export function TeacherLayout({ exam, examCode, roster, students, updateExam, on
                   size="sm"
                   onClick={() => setMode(teacherMode.value)}
                   className={cn(
-                    "h-8 rounded-sm px-3 text-sm shadow-none",
-                    mode === teacherMode.value && "bg-background text-foreground shadow-xs"
+                    "h-8 rounded-sm px-3 text-sm text-sky-800 shadow-none hover:bg-sky-100 hover:text-sky-900",
+                    mode === teacherMode.value && "bg-sky-600 text-white shadow-xs hover:bg-sky-600 hover:text-white"
                   )}
                 >
                   {teacherMode.label}

@@ -24,3 +24,18 @@ export function generateExamCode(activeExams: Map<string, unknown>): string {
 
     return code;
 }
+
+export function generateExamID(): string {
+    const chars = 
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567890";
+
+    let id: string = ""
+
+    for (let i = 0; i < 10; i++) {
+        id += chars[
+            Math.floor(Math.random() * chars.length)
+        ];
+    }
+
+    return id;
+}

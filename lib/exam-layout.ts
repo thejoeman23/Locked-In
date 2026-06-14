@@ -13,16 +13,23 @@ export type StudentStatus = "join-code" | "enter-name" | "waiting" | "taking-exa
 export type TerminationTerms = "timeout" | "manual";
 export type StudentFinishReason = "submitted" | TerminationTerms;
 
+export interface Roster {
+    id: string;
+    name: string;
+    names: string[];
+}
+
 export interface ActiveExam {
     // Original exam configuration created by the teacher.
     exam: Exam;
     students: Student[];
     // Expected student names/codes for admission control when that feature lands.
-    roster: string[];
+    roster: Roster;
 }
 
 export interface Exam {
     title: string;
+    id: string;
     // High-level lifecycle used by the teacher button and socket events.
     status: "setup" | "waiting" | "live" | "terminated";
     content: Section[];

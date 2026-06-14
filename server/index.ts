@@ -1,6 +1,6 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
-import type { ActiveExam, Exam, Student, TerminationTerms } from "../lib/exam-layout.ts";
+import type { ActiveExam, Exam, Roster, Student, TerminationTerms } from "../lib/exam-layout.ts";
 import { generateExamCode } from "../lib/utils.ts";
 
 const httpServer = createServer();
@@ -20,7 +20,7 @@ io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
 
     // Teacher events.
-    socket.on("exam:create", (exam: Exam, roster: string[]) => {
+    socket.on("exam:create", (exam: Exam, roster: Roster) => {
         console.log("Creating exam:", exam);
 
         // The generated code is both the student-facing join code and socket room id.
@@ -54,7 +54,7 @@ io.on("connection", (socket) => {
         activeExam.exam = exam;
     });
 
-    socket.on("exam:updateroster", (examId: string, roster: string[]) => {
+    socket.on("exam:updateroster", (examId: string, roster: Roster) => {
         const activeExam = activeExams.get(examId);
         if (!activeExam) {
             console.warn(`Exam with ID ${examId} not found for roster update`);
@@ -62,7 +62,7 @@ io.on("connection", (socket) => {
         }
 
         socket.join(examId);
-        activeExam.roster = Array.from(new Set(roster.map(normalizeStudentName).filter(Boolean)));
+        activeExam.roster = roster;
         io.to(examId).emit("exam:update", activeExam);
         console.log(`Updated roster for exam ${examId}:`, activeExam.roster);
     });
@@ -176,7 +176,7 @@ io.on("connection", (socket) => {
             return;
         }
 
-        if (!activeExam.roster.includes(normalizedName)) {
+        if (!activeExam.roster.names.includes(normalizedName)) {
             socket.emit("exam:invalidname");
             return;
         }

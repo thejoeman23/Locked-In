@@ -2,6 +2,7 @@
 
 import { TeacherLayout } from "@/components/teacher/teacher-layout";
 import { ActiveExam, Exam, Student } from "@/lib/exam-layout";
+import { generateExamID } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -17,6 +18,7 @@ export default function Home() {
   const [students, setStudents] = useState<Student[]>([]);
   const [exam, setExam] = useState<Exam>({
     title: "",
+    id: generateExamID(),
     status: "setup",
     content: [
       {
