@@ -47,16 +47,19 @@ export function RosterCreator({ examStatus, roster, students, onAddRosterName, o
   return (
     <aside className="h-fit rounded-xl border bg-background p-5 shadow-xs">
       <div className="space-y-1.5">
-        <h2 className="text-xl">Student Dashboard</h2>
+        <h2 className="text-xl">Exam Roster</h2>
         <p className="text-sm text-muted-foreground">
-          Type a student&apos;s name and press Enter to allow them into this exam.
+          Type a student&apos;s name and press Enter to allow them into this exam.{" "}
+          <span className="text-foreground">
+            Names are saved in all caps so the same student is recognized even if capitalization is typed differently.
+          </span>
         </p>
       </div>
 
       <div className="mt-4 flex flex-row items-center gap-2">
         <Input
           value={studentName}
-          onChange={(event) => setStudentName(event.target.value)}
+          onChange={(event) => setStudentName(event.target.value.toUpperCase())}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
@@ -65,6 +68,7 @@ export function RosterCreator({ examStatus, roster, students, onAddRosterName, o
           }}
           placeholder="Student name"
           id="student-name-input"
+          className="uppercase"
         />
         <Button
           id="submit-student-name-button"

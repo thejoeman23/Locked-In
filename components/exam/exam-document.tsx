@@ -387,7 +387,7 @@ export function ExamDocument({
     <article
       id={getExamTopElementId()}
       className={cn(
-        "min-h-[880px] w-full max-w-[816px] scroll-mt-24 bg-white px-16 py-12 shadow-sm ring-1 ring-black/10",
+        "font-exam-paper min-h-[880px] w-full max-w-[816px] scroll-mt-24 bg-white px-16 py-12 shadow-sm ring-1 ring-black/10",
         className
       )}
     >
