@@ -9,7 +9,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Locked-In",
+  title: "Locked-In: English Exams made right.",
   description: "The best way to make, take, and mark English Exams.",
 };
 
