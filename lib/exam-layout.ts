@@ -12,6 +12,7 @@ export interface Student {
 export type StudentStatus = "join-code" | "enter-name" | "waiting" | "taking-exam" | "finished";
 export type TerminationTerms = "timeout" | "manual";
 export type StudentFinishReason = "submitted" | TerminationTerms;
+export type TeacherMode = "edit" | "roster" | "administer" | "submissions";
 
 export interface Roster {
     id: string;
@@ -32,7 +33,8 @@ export interface Exam {
     id: string;
     last_updated: string;
     // High-level lifecycle used by the teacher button and socket events.
-    status: "setup" | "waiting" | "live" | "terminated";
+    status: "setup" | "waiting" | "live";
+    teacher_mode: TeacherMode;
     content: Section[];
 }
 

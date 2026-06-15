@@ -1,20 +1,16 @@
 "use client"
 
-import { Circle, CircleCheck, Clock3 } from "lucide-react";
-import { DeleteButton } from "@/components/common/delete-button";
+import { StudentChip, type StudentDisplayState } from "@/components/teacher/student-chip";
 import type { Exam, Student } from "@/lib/exam-layout";
-import { cn } from "@/lib/utils";
-
-type StudentDisplayState = "not-connected" | "connected" | "in-progress" | "submitted";
 
 type Props = {
   examStatus: Exam["status"];
   roster: string[];
   students: Student[];
-  onRemoveRosterName: (name: string) => void;
+  onKickStudent: (name: string) => void;
 };
 
-export function TeacherDashboard({ examStatus, roster, students, onRemoveRosterName }: Props) {
+export function TeacherDashboard({ examStatus, roster, students, onKickStudent }: Props) {
   const displayStudents = getDisplayStudents(roster, students, examStatus);
 
   return (
@@ -33,7 +29,8 @@ export function TeacherDashboard({ examStatus, roster, students, onRemoveRosterN
                 key={student.name}
                 name={student.name}
                 state={student.state}
-                onDelete={() => onRemoveRosterName(student.name)}
+                kickOnly
+                onDelete={() => onKickStudent(student.name)}
               />
             ))}
           </div>
@@ -70,46 +67,4 @@ function getStudentState(student: Student, examStatus: Exam["status"]): StudentD
   }
 
   return "not-connected";
-}
-
-function StudentChip({ name, state, onDelete }: { name: string; state: StudentDisplayState; onDelete: () => void }) {
-  const Icon = {
-    "not-connected": Circle,
-    connected: CircleCheck,
-    "in-progress": Clock3,
-    submitted: CircleCheck
-  }[state];
-
-  return (
-    <div
-      className={cn(
-        "inline-flex items-stretch overflow-hidden rounded text-sm ring-1",
-        state === "not-connected" && "bg-neutral-200 text-neutral-800 ring-neutral-300",
-        state === "connected" && "bg-sky-50 text-sky-800 ring-sky-200",
-        state === "in-progress" && "bg-amber-50 text-amber-900 ring-amber-200",
-        state === "submitted" && "bg-emerald-50 text-emerald-900 ring-emerald-200"
-      )}
-    >
-      <button
-        type="button"
-        className="inline-flex items-center gap-2 px-2 py-1"
-      >
-        <Icon className="size-3.5" />
-        <span>{name}</span>
-      </button>
-      <DeleteButton
-        triggersAlert={state === "connected" || state === "in-progress" ? true : false}
-        alertDescription={state === "connected" || state === "in-progress" ? "This action will kick this student from the exam." : undefined}
-        label={`Remove ${name} from roster`}
-        onClick={onDelete}
-        className={cn(
-          "size-auto rounded-none border-y-0 border-r-0 px-1.5",
-          state === "not-connected" && "border-neutral-300 bg-neutral-300/60 text-neutral-800 hover:bg-neutral-300",
-          state === "connected" && "border-sky-200 bg-sky-100 text-sky-800 hover:bg-sky-200",
-          state === "in-progress" && "border-amber-200 bg-amber-100 text-amber-900 hover:bg-amber-200",
-          state === "submitted" && "border-emerald-200 bg-emerald-100 text-emerald-900 hover:bg-emerald-200"
-        )}
-      />
-    </div>
-  );
 }

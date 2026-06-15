@@ -9,6 +9,7 @@ type Props = {
   preview: ReactNode;
   metadata?: string;
   previewClassName?: string;
+  deletable?: boolean;
   onOpen: () => void;
 };
 
@@ -18,6 +19,7 @@ export function ExamCard({
   preview,
   metadata,
   previewClassName,
+  deletable = false,
   onOpen
 }: Props) {
   return (

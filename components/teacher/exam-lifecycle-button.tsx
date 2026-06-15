@@ -1,6 +1,6 @@
 "use client"
 
-import { CircleCheck, Eye, Play, Square, Undo2 } from "lucide-react";
+import { Eye, Play, Square, Undo2 } from "lucide-react";
 import { AlertButton } from "@/components/common/alert-button";
 import { Exam } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,7 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
     } else if (exam.status === "waiting") {
       newExam.status = "live"
     } else if (exam.status === "live") {
-      newExam.status = "terminated"
+      newExam.status = "setup"
     }
 
     updateExam(newExam)
@@ -42,8 +42,7 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
   const LifecycleIcon = {
     setup: Eye,
     waiting: Play,
-    live: Square,
-    terminated: CircleCheck
+    live: Square
   }[exam.status];
 
   return (
@@ -53,7 +52,6 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
         exam.status === "setup" && "border-sky-200 bg-sky-50 text-sky-700",
         exam.status === "waiting" && "border-emerald-200 bg-emerald-50 text-emerald-700",
         exam.status === "live" && "border-amber-200 bg-amber-50 text-amber-800",
-        exam.status === "terminated" && "border-zinc-300 bg-zinc-100 text-zinc-500",
         className
       )}
     >
@@ -84,14 +82,12 @@ export function ExamLifecycleButton({ exam, updateExam, className, ...props }: P
         size="lg"
         onClick={handleButton}
         className="h-auto min-h-12 flex-1 rounded-md border-0 bg-background/80 px-4 text-base font-semibold text-current shadow-xs hover:bg-background hover:text-current disabled:bg-transparent disabled:shadow-none"
-        disabled={exam.status === "terminated"}
         {...props}
       >
         <LifecycleIcon className="size-4" />
         {exam.status === "setup" && "Reveal Exam Join Code"}
         {exam.status === "waiting" && "Start Exam"}
         {exam.status === "live" && "End Exam"}
-        {exam.status === "terminated" && "Exam Ended"}
       </AlertButton>
     </div>
   );

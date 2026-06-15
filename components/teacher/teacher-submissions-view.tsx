@@ -11,7 +11,7 @@ type Props = {
 
 export function SubmissionsView({ examStatus, students }: Props) {
   const submittedCount = students.filter((student) => student.completed).length;
-  const canDownload = examStatus === "terminated";
+  const canDownload = examStatus === "setup" && submittedCount > 0;
 
   return (
     <section className="mx-auto w-full max-w-2xl px-4 py-8">

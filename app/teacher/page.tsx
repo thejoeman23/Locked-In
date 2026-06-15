@@ -134,7 +134,8 @@ function withNewExamId(template: Exam, fallbackTitle?: string): Exam {
     id: generateExamID(),
     last_updated: new Date().toISOString(),
     title: template.title || fallbackTitle || "Untitled exam",
-    status: "setup"
+    status: "setup",
+    teacher_mode: "edit"
   };
 }
 

@@ -11,7 +11,7 @@ type Props = {
   roster: string[];
   students: Student[];
   updateExam: (exam: Exam) => void;
-  onRemoveRosterName: (name: string) => void;
+  onKickStudent: (name: string) => void;
 };
 
 export function AdministerView({
@@ -20,7 +20,7 @@ export function AdministerView({
   roster,
   students,
   updateExam,
-  onRemoveRosterName
+  onKickStudent
 }: Props) {
   return (
     <section className="mx-auto column w-full max-w-5xl gap-6 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -35,7 +35,7 @@ export function AdministerView({
         examStatus={exam.status}
         roster={roster}
         students={students}
-        onRemoveRosterName={onRemoveRosterName}
+        onKickStudent={onKickStudent}
       />
     </section>
   );

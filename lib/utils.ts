@@ -48,6 +48,7 @@ export function NewExam(): Exam {
         id: generateExamID(),
         last_updated: new Date().toISOString(),
         status: "setup",
+        teacher_mode: "edit",
         content: [
             {
                 title: "Sample Section",

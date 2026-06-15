@@ -130,12 +130,14 @@ io.on("connection", (socket) => {
 
     socket.on("exam:terminate", (examId: string, terms: TerminationTerms) => {
         console.log("Terminating exam:", examId);
-
-        // Removing the exam prevents new joins and acts as the final lifecycle state.
-        activeExams.delete(examId);
+        const activeExam = activeExams.get(examId);
+        if (activeExam) {
+            activeExam.exam.status = "setup";
+        }
         socket.to(examId).emit("exam:requested");
         setTimeout(() => {
             socket.to(examId).emit("exam:terminated", terms);
+            activeExams.delete(examId);
         })
 
         console.log(activeExams);
@@ -152,8 +154,9 @@ io.on("connection", (socket) => {
         console.log("Pre-terminating exam:", examId);
         const activeExam = activeExams.get(examId);
         if (activeExam) {
-            activeExam.exam.status = "terminated";
+            activeExam.exam.status = "setup";
             io.to(examId).emit("exam:preterminated");
+            activeExams.delete(examId);
         } else {
             console.warn(`Exam with ID ${examId} not found for pre-termination`);
         }
@@ -186,7 +189,7 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("exam:join", (examId: string, name: string) => {
+    socket.on("exam:join", (examId: string, name: string, isRejoin = false) => {
         const normalizedName = normalizeStudentName(name);
         const activeExam = activeExams.get(examId);
 
@@ -203,7 +206,7 @@ io.on("connection", (socket) => {
 
         const existingStudent = activeExam.students.find((student) => student.name === normalizedName);
 
-        if (existingStudent?.connected) {
+        if (existingStudent?.connected && !isRejoin) {
             socket.emit("exam:nameinuse");
             return;
         }
@@ -216,6 +219,10 @@ io.on("connection", (socket) => {
         socket.join(examId);
 
         if (existingStudent) {
+            if (existingStudent.connected && existingStudent.socket !== socket.id) {
+                io.sockets.sockets.get(existingStudent.socket)?.leave(examId);
+            }
+
             existingStudent.socket = socket.id;
             existingStudent.connected = true;
             io.to(examId).emit("exam:update", activeExam);
@@ -291,30 +298,51 @@ io.on("connection", (socket) => {
         console.log(`Received exam submission from student ${student.name} in exam ${examID}`);
     });
 
-    socket.on("disconnect", (examID: string) => {
-        const activeExam = activeExams.get(examID);
-        if (!activeExam) {
-            console.warn(`Exam with ID ${examID} not found for submission`);
-            return;
-        }
+    socket.on("exam:disconnect", (examID: string) => {
+        disconnectStudent(socket.id, examID);
+    });
 
-        const student = activeExam.students.find((student) => student.socket === socket.id);
-        if (!student) {
-            console.warn('Student doesnt exist so cant disconnect.')
-            return;
-        }
-
-        student.connected = false;
-        io.to(examID).emit("exam:update", activeExam);
-        socket.leave(examID);
-        console.log(`Disconnected student ${student.name} from exam ${examID}`);
-        return;
+    socket.on("disconnect", () => {
+        disconnectStudent(socket.id);
     });
 });
 
 httpServer.listen(3001, () => {
     console.log("Socket server listening on http://localhost:3001");
 });
+
+function disconnectStudent(socketId: string, examID?: string) {
+    if (examID) {
+        const activeExam = activeExams.get(examID);
+        if (!activeExam) {
+            console.warn(`Exam with ID ${examID} not found for student disconnect`);
+            return;
+        }
+
+        const student = activeExam.students.find((student) => student.socket === socketId);
+        if (!student) {
+            console.warn("Student does not exist so cannot disconnect.");
+            return;
+        }
+
+        student.connected = false;
+        io.to(examID).emit("exam:update", activeExam);
+        console.log(`Disconnected student ${student.name} from exam ${examID}`);
+        return;
+    }
+
+    for (const [activeExamId, activeExam] of activeExams.entries()) {
+        const student = activeExam.students.find((student) => student.socket === socketId);
+        if (!student) {
+            continue;
+        }
+
+        student.connected = false;
+        io.to(activeExamId).emit("exam:update", activeExam);
+        console.log(`Disconnected student ${student.name} from exam ${activeExamId}`);
+        return;
+    }
+}
 
 function normalizeStudentName(name: string) {
     return name.trim().replace(/\s+/g, " ").toUpperCase();

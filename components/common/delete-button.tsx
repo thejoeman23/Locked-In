@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react";
-import { Trash2 } from "lucide-react";
+import { LogOut, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AlertButton } from "@/components/common/alert-button";
 
@@ -9,6 +9,7 @@ type Props = Omit<React.ComponentProps<"button">, "children"> & {
   label?: string;
   triggersAlert?: boolean;
   alertDescription?: string;
+  kickLogo?: boolean;
 };
 
 export function DeleteButton({
@@ -18,8 +19,11 @@ export function DeleteButton({
   type = "button",
   triggersAlert = false,
   alertDescription,
+  kickLogo = false,
   ...props
 }: Props) {
+  const Icon = kickLogo ? LogOut : Trash2;
+
   return (
     <AlertButton
       triggersAlert={triggersAlert}
@@ -36,7 +40,7 @@ export function DeleteButton({
       )}
       {...props}
     >
-      <Trash2 className="size-4" />
+      <Icon className="size-4" />
     </AlertButton>
   );
 }

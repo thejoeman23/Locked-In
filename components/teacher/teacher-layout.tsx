@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react";
 import { ExamTitle } from "@/components/exam/exam-title";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/common/back-button";
@@ -8,21 +7,22 @@ import { AdministerView } from "@/components/teacher/teacher-administer-view";
 import { EditView } from "@/components/teacher/teacher-edit-view";
 import { RosterView } from "@/components/teacher/teacher-roster-view";
 import { SubmissionsView } from "@/components/teacher/teacher-submissions-view";
-import { Exam, Student } from "@/lib/exam-layout";
+import { Exam, Student, TeacherMode } from "@/lib/exam-layout";
 import { cn } from "@/lib/utils";
 
 type Props = {
   exam: Exam;
   examCode: string | null;
+  mode: TeacherMode;
   roster: string[];
   students: Student[];
   updateExam: (exam: Exam) => void;
+  onModeChange: (mode: TeacherMode) => void;
   onAddRosterName: (name: string) => void;
   onAddRosterNames: (names: string[]) => void;
   onRemoveRosterName: (name: string) => void;
+  onKickStudent: (name: string) => void;
 };
-
-type TeacherMode = "edit" | "roster" | "administer" | "submissions";
 
 const teacherModes: { value: TeacherMode; label: string }[] = [
   { value: "edit", label: "Edit" },
@@ -31,9 +31,7 @@ const teacherModes: { value: TeacherMode; label: string }[] = [
   { value: "submissions", label: "Submissions" }
 ];
 
-export function TeacherLayout({ exam, examCode, roster, students, updateExam, onAddRosterName, onAddRosterNames, onRemoveRosterName }: Props) {
-  const [mode, setMode] = useState<TeacherMode>("edit");
-
+export function TeacherLayout({ exam, examCode, mode, roster, students, updateExam, onModeChange, onAddRosterName, onAddRosterNames, onRemoveRosterName, onKickStudent }: Props) {
   function updateExamTitle(title: string) {
     updateExam({ ...exam, title });
   }
@@ -64,7 +62,7 @@ export function TeacherLayout({ exam, examCode, roster, students, updateExam, on
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setMode(teacherMode.value)}
+                  onClick={() => onModeChange(teacherMode.value)}
                   className={cn(
                     "h-8 rounded-sm px-3 text-sm text-sky-800 shadow-none hover:bg-sky-100 hover:text-sky-900",
                     mode === teacherMode.value && "bg-sky-600 text-white shadow-xs hover:bg-sky-600 hover:text-white"
@@ -103,7 +101,7 @@ export function TeacherLayout({ exam, examCode, roster, students, updateExam, on
           roster={roster}
           students={students}
           updateExam={updateExam}
-          onRemoveRosterName={onRemoveRosterName}
+          onKickStudent={onKickStudent}
         />
       )}
 

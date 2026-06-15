@@ -1,7 +1,7 @@
 "use client";
 
 import { TeacherLayout } from "@/components/teacher/teacher-layout";
-import { ActiveExam, Exam, Roster, Student } from "@/lib/exam-layout";
+import { ActiveExam, Exam, Roster, Student, TeacherMode } from "@/lib/exam-layout";
 import { NewExam, NewRoster } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -31,7 +31,11 @@ export default function Home() {
 
     async function loadExam() {
       const savedExam = await localTeacherStorage.getExam(examId);
-      const nextExam = savedExam ?? initialExam;
+      const nextExam = {
+        ...(savedExam ?? initialExam),
+        status: getSupportedExamStatus((savedExam ?? initialExam).status),
+        teacher_mode: (savedExam ?? initialExam).teacher_mode ?? "edit"
+      };
 
       if (!savedExam) {
         await localTeacherStorage.saveExam(nextExam);
@@ -87,7 +91,10 @@ export default function Home() {
       rejoinAttemptRef.current = null;
       examCodeRef.current = activeExamCode;
       setExamCode(activeExamCode);
-      setExam(activeExam.exam);
+      setExam((currentExam) => ({
+        ...activeExam.exam,
+        teacher_mode: currentExam.teacher_mode ?? activeExam.exam.teacher_mode ?? "edit"
+      }));
       rosterRef.current = activeExam.roster;
       setRoster(activeExam.roster);
       setStudents(activeExam.students);
@@ -171,9 +178,12 @@ export default function Home() {
       setStudents([]);
     }
 
-    if (currentStatus === "live" && nextStatus === "terminated") {
-      console.log("Terminating exam on server...");
+    if (currentStatus === "live" && nextStatus === "setup") {
+      console.log("Ending exam and returning to setup...");
       socketRef.current?.emit("exam:terminate", examCode, "manual");
+      examCodeRef.current = null;
+      setExamCode(null);
+      setStudents([]);
     }
 
     if (
@@ -186,6 +196,17 @@ export default function Home() {
 
     const savedExam = {
       ...newExam,
+      last_updated: new Date().toISOString()
+    };
+
+    setExam(savedExam);
+    localTeacherStorage.saveExam(savedExam);
+  }
+
+  function updateTeacherMode(mode: TeacherMode) {
+    const savedExam = {
+      ...exam,
+      teacher_mode: mode,
       last_updated: new Date().toISOString()
     };
 
@@ -266,16 +287,31 @@ export default function Home() {
     }
   }
 
+  function kickStudent(name: string) {
+    const normalizedName = normalizeStudentName(name);
+    const currentExamCode = examCodeRef.current ?? examCode;
+
+    if (!currentExamCode) {
+      return;
+    }
+
+    console.log("Kicking student from exam:", currentExamCode, normalizedName);
+    socketRef.current?.emit("exam:kickstudent", currentExamCode, normalizedName);
+  }
+
   return (
     <TeacherLayout
       exam={exam}
       examCode={examCode}
+      mode={exam.teacher_mode}
       roster={roster.names}
       students={students}
       updateExam={updateExam}
+      onModeChange={updateTeacherMode}
       onAddRosterName={addRosterName}
       onAddRosterNames={addRosterNames}
       onRemoveRosterName={removeRosterName}
+      onKickStudent={kickStudent}
     />
   );
 }
@@ -289,4 +325,12 @@ function updateRosterNames(roster: Roster, names: string[]): Roster {
     ...roster,
     names: Array.from(new Set(names.map(normalizeStudentName).filter(Boolean)))
   };
+}
+
+function getSupportedExamStatus(status: string): Exam["status"] {
+  if (status === "waiting" || status === "live") {
+    return status;
+  }
+
+  return "setup";
 }

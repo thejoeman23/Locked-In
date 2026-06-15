@@ -3,6 +3,8 @@
 import { StudentLayout } from "@/components/student/student-layout";
 
 import { Exam, StudentFinishReason, StudentStatus, TerminationTerms } from "@/lib/exam-layout";
+import { localStudentStorage } from "@/lib/local-student-storage";
+import { StudentStorageState } from "@/lib/student-storage";
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -11,9 +13,12 @@ const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3001";
 export default function Home() {
   const socketRef = useRef<Socket | null>(null);
   const examCodeRef = useRef<string | null>(null);
+  const studentNameRef = useRef<string | null>(null);
   const errorAlertRef = useRef<string | null>(null);
   const statusRef = useRef<StudentStatus>("join-code");
   const examRef = useRef<Exam | null>(null);
+  const pendingStudentRef = useRef<StudentStorageState | null>(null);
+  const autoRejoinAttemptedRef = useRef(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<StudentStatus>("join-code");
   const [finishReason, setFinishReason] = useState<StudentFinishReason>("submitted");
@@ -22,6 +27,11 @@ export default function Home() {
   function setStudentError(message: string | null) {
     errorAlertRef.current = message;
     setErrorMessage(message);
+  }
+
+  function clearSavedStudent() {
+    pendingStudentRef.current = null;
+    localStudentStorage.clearStudent();
   }
 
   useEffect(() => {
@@ -39,6 +49,15 @@ export default function Home() {
     socket.on("connect", () => {
       setStudentError(null);
       console.log("Connected to socket:", socket.id);
+
+      if (!autoRejoinAttemptedRef.current && pendingStudentRef.current) {
+        autoRejoinAttemptedRef.current = true;
+        const savedStudent = pendingStudentRef.current;
+        examCodeRef.current = savedStudent.examCode;
+        studentNameRef.current = savedStudent.studentName;
+        setStatus("waiting");
+        socket.emit("exam:join", savedStudent.examCode, savedStudent.studentName, true);
+      }
     });
 
     // Error events.
@@ -48,12 +67,16 @@ export default function Home() {
     });
 
     socket.on("exam:notfound", () => {
+      examCodeRef.current = null;
+      studentNameRef.current = null;
+      clearSavedStudent();
       setStatus("join-code");
       setStudentError("No exam found with that code. Please check the code and try again.");
       console.warn("Exam not found with code:", examCodeRef.current);
     });
 
     socket.on("exam:invalidname", () => {
+      clearSavedStudent();
       setStudentError("The name you entered is invalid for this exam.");
       console.warn("Invalid name for exam with code:", examCodeRef.current);
     });
@@ -65,6 +88,8 @@ export default function Home() {
 
     socket.on("exam:kicked", () => {
       examCodeRef.current = null;
+      studentNameRef.current = null;
+      clearSavedStudent();
       setExam(null);
       setStatus("join-code");
       setStudentError("Your teacher removed you from this exam.");
@@ -72,6 +97,9 @@ export default function Home() {
     });
 
     socket.on("exam:alreadycompleted", () => {
+      examCodeRef.current = null;
+      studentNameRef.current = null;
+      clearSavedStudent();
       setStatus("join-code");
       setStudentError("You have already completed this exam.");
       console.warn("Student attempted to join an exam they have already completed with code:", examCodeRef.current);
@@ -87,6 +115,12 @@ export default function Home() {
     socket.on("exam:joined", () => {
       setStudentError(null);
       setStatus("waiting");
+      if (examCodeRef.current && studentNameRef.current) {
+        localStudentStorage.saveStudent({
+          examCode: examCodeRef.current,
+          studentName: studentNameRef.current
+        });
+      }
       console.log("Joined exam with unique code:", examCodeRef.current);
     });
 
@@ -94,6 +128,12 @@ export default function Home() {
       setStudentError(null);
       setExam(uniqueExam);
       setStatus("taking-exam");
+      if (examCodeRef.current && studentNameRef.current) {
+        localStudentStorage.saveStudent({
+          examCode: examCodeRef.current,
+          studentName: studentNameRef.current
+        });
+      }
       console.log("Exam started:", JSON.stringify(uniqueExam));
     });
 
@@ -102,6 +142,7 @@ export default function Home() {
       setStatus("finished");
       console.log("Exam submitted");
       socketRef.current?.emit("exam:disconnect", examCodeRef.current);
+      clearSavedStudent();
     });
 
     // Sync/support events.
@@ -124,9 +165,14 @@ export default function Home() {
       setFinishReason(terms);
       setStatus("finished");
       socketRef.current?.emit("exam:disconnect", examCodeRef.current);
+      clearSavedStudent();
     });
 
     socket.on("exam:setup", () => {
+      socketRef.current?.emit("exam:disconnect", examCodeRef.current);
+      examCodeRef.current = null;
+      studentNameRef.current = null;
+      clearSavedStudent();
       setStatus("join-code");
       setExam(null);
       setStudentError("The teacher returned the exam to setup. Please wait for a new code.");
@@ -134,6 +180,10 @@ export default function Home() {
     });
 
     socket.on("exam:preterminated", () => {
+      socketRef.current?.emit("exam:disconnect", examCodeRef.current);
+      examCodeRef.current = null;
+      studentNameRef.current = null;
+      clearSavedStudent();
       setStatus("join-code");
       setStudentError("The exam has been pre-terminated by the teacher. Please wait for further instructions.");
       console.log("Exam pre-terminated");
@@ -146,11 +196,36 @@ export default function Home() {
       console.log("Exam setback");
     });
 
-    return () => {
-      // Avoid keeping stale socket event handlers alive after leaving /teacher.
+    localStudentStorage.getStudent().then((savedStudent) => {
+      if (!savedStudent || autoRejoinAttemptedRef.current) {
+        return;
+      }
+
+      pendingStudentRef.current = savedStudent;
+      if (socket.connected) {
+        autoRejoinAttemptedRef.current = true;
+        examCodeRef.current = savedStudent.examCode;
+        studentNameRef.current = savedStudent.studentName;
+        setStatus("waiting");
+        socket.emit("exam:join", savedStudent.examCode, savedStudent.studentName, true);
+      }
+    });
+
+    function disconnectStudent() {
+      if (examCodeRef.current) {
+        socket.emit("exam:disconnect", examCodeRef.current);
+      }
       socket.disconnect();
+    }
+
+    window.addEventListener("beforeunload", disconnectStudent);
+
+    return () => {
+      window.removeEventListener("beforeunload", disconnectStudent);
+      disconnectStudent();
       socketRef.current = null;
       examCodeRef.current = null;
+      studentNameRef.current = null;
       errorAlertRef.current = null;
     };
   }, []);
@@ -169,16 +244,20 @@ export default function Home() {
   }, [exam]);
 
   function searchForExam(code: string) {
+    const normalizedCode = code.trim().toUpperCase();
     setStudentError(null);
-    examCodeRef.current = code;
+    examCodeRef.current = normalizedCode;
+    studentNameRef.current = null;
     console.log("Searching for exam with code:", examCodeRef.current);
     socketRef.current?.emit("exam:search", examCodeRef.current);
   }
 
   function joinExam(name: string) {
+    const normalizedName = name.trim().replace(/\s+/g, " ").toUpperCase();
     setStudentError(null);
-    console.log(`Attempting to join exam with code: ${examCodeRef.current} and name: ${name}`);
-    socketRef.current?.emit("exam:join", examCodeRef.current, name);
+    studentNameRef.current = normalizedName;
+    console.log(`Attempting to join exam with code: ${examCodeRef.current} and name: ${normalizedName}`);
+    socketRef.current?.emit("exam:join", examCodeRef.current, normalizedName);
   }
 
   function submitExam() {
