@@ -1,11 +1,11 @@
 "use client";
 
 import { FileText, Plus, Upload } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import defaultTemplate from "@/exam_templates/default.json";
 import mockTemplate from "@/exam_templates/mock.json";
+import { BackButton } from "@/components/common/back-button";
 import { ExamCard } from "@/components/teacher/exam-card";
 import type { Exam } from "@/lib/exam-layout";
 import { localTeacherStorage } from "@/lib/local-teacher-storage";
@@ -75,13 +75,14 @@ export default function TeacherHome() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b bg-background">
-        <div className="flex h-16 items-center px-6">
-          <Link href="/" className="flex items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-            <div className="flex size-9 items-center justify-center rounded-md bg-sky-600 text-white">
-              <FileText className="size-5" />
-            </div>
+        <div className="flex h-16 items-center gap-3 px-6">
+          <BackButton />
+          <div className="flex items-center gap-2">
             <h1 className="text-xl font-medium">Locked In</h1>
-          </Link>
+            <span className="rounded-full border border-orange-200 bg-orange-100 px-2 py-0.5 text-xs font-semibold uppercase tracking-normal text-orange-800">
+              Beta
+            </span>
+          </div>
         </div>
       </header>
 
