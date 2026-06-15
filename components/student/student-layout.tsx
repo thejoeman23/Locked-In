@@ -108,9 +108,13 @@ export function StudentLayout({ exam, status, errorMessage, finishReason, update
       )}
 
       {status === "waiting" && (
-        <div className="space-y-2 text-center">
+        <div className="w-full max-w-md space-y-3 rounded-xl border bg-background p-6 text-center shadow-sm">
           <h1 className="text-2xl">You are in.</h1>
           <p className="text-sm text-muted-foreground">Waiting for your teacher to start the exam.</p>
+          <div className="space-y-2 rounded-lg bg-sky-50 p-4 text-left text-sm leading-6 text-sky-900">
+            <p>- Leaving fullscreen during the exam will alert the teacher.</p>
+            <p>- Any copied text from before the exam has been cleared.</p>
+          </div>
           {errorDisplay}
         </div>
       )}

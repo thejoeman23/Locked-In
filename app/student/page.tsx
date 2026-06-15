@@ -5,7 +5,7 @@ import { StudentLayout } from "@/components/student/student-layout";
 import { Exam, StudentFinishReason, StudentStatus, TerminationTerms } from "@/lib/exam-layout";
 import { localStudentStorage } from "@/lib/local-student-storage";
 import { StudentStorageState } from "@/lib/student-storage";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3001";
@@ -19,6 +19,7 @@ export default function Home() {
   const examRef = useRef<Exam | null>(null);
   const pendingStudentRef = useRef<StudentStorageState | null>(null);
   const autoRejoinAttemptedRef = useRef(false);
+  const secureSessionPreparedRef = useRef(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<StudentStatus>("join-code");
   const [finishReason, setFinishReason] = useState<StudentFinishReason>("submitted");
@@ -33,6 +34,57 @@ export default function Home() {
     pendingStudentRef.current = null;
     localStudentStorage.clearStudent();
   }
+
+  const requestFullscreen = useCallback(function requestFullscreen() {
+    if (document.fullscreenElement || !document.documentElement.requestFullscreen) {
+      return;
+    }
+
+    document.documentElement.requestFullscreen().catch((error) => {
+      console.warn("Unable to enter fullscreen:", error);
+    });
+  }, []);
+
+  const exitFullscreen = useCallback(function exitFullscreen() {
+    if (!document.fullscreenElement || !document.exitFullscreen) {
+      return;
+    }
+
+    document.exitFullscreen().catch((error) => {
+      console.warn("Unable to exit fullscreen:", error);
+    });
+  }, []);
+
+  const clearClipboard = useCallback(function clearClipboard() {
+    navigator.clipboard?.writeText("").catch((error) => {
+      console.warn("Unable to clear clipboard:", error);
+    });
+  }, []);
+
+  const prepareSecureExamSession = useCallback(function prepareSecureExamSession() {
+    if (secureSessionPreparedRef.current) {
+      return;
+    }
+
+    secureSessionPreparedRef.current = true;
+    requestFullscreen();
+    clearClipboard();
+  }, [clearClipboard, requestFullscreen]);
+
+  const changeStudentStatus = useCallback(function changeStudentStatus(nextStatus: StudentStatus) {
+    statusRef.current = nextStatus;
+    setStatus(nextStatus);
+
+    if (nextStatus === "waiting" || nextStatus === "taking-exam") {
+      prepareSecureExamSession();
+      return;
+    }
+
+    if (nextStatus === "join-code" || nextStatus === "finished") {
+      secureSessionPreparedRef.current = false;
+      exitFullscreen();
+    }
+  }, [exitFullscreen, prepareSecureExamSession]);
 
   useEffect(() => {
     statusRef.current = status;
@@ -55,7 +107,7 @@ export default function Home() {
         const savedStudent = pendingStudentRef.current;
         examCodeRef.current = savedStudent.examCode;
         studentNameRef.current = savedStudent.studentName;
-        setStatus("waiting");
+        changeStudentStatus("waiting");
         socket.emit("exam:join", savedStudent.examCode, savedStudent.studentName, true);
       }
     });
@@ -70,7 +122,7 @@ export default function Home() {
       examCodeRef.current = null;
       studentNameRef.current = null;
       clearSavedStudent();
-      setStatus("join-code");
+      changeStudentStatus("join-code");
       setStudentError("No exam found with that code. Please check the code and try again.");
       console.warn("Exam not found with code:", examCodeRef.current);
     });
@@ -91,7 +143,7 @@ export default function Home() {
       studentNameRef.current = null;
       clearSavedStudent();
       setExam(null);
-      setStatus("join-code");
+      changeStudentStatus("join-code");
       setStudentError("Your teacher removed you from this exam.");
       console.warn("Student was removed from exam");
     });
@@ -100,7 +152,7 @@ export default function Home() {
       examCodeRef.current = null;
       studentNameRef.current = null;
       clearSavedStudent();
-      setStatus("join-code");
+      changeStudentStatus("join-code");
       setStudentError("You have already completed this exam.");
       console.warn("Student attempted to join an exam they have already completed with code:", examCodeRef.current);
     });
@@ -108,13 +160,13 @@ export default function Home() {
     // Chronological exam flow.
     socket.on("exam:found", () => {
       setStudentError(null);
-      setStatus("enter-name");
+      changeStudentStatus("enter-name");
       console.log("Exam found with code:", examCodeRef.current);
     });
 
     socket.on("exam:joined", () => {
       setStudentError(null);
-      setStatus("waiting");
+      changeStudentStatus("waiting");
       if (examCodeRef.current && studentNameRef.current) {
         localStudentStorage.saveStudent({
           examCode: examCodeRef.current,
@@ -127,7 +179,7 @@ export default function Home() {
     socket.on("exam:started", (uniqueExam: Exam) => {
       setStudentError(null);
       setExam(uniqueExam);
-      setStatus("taking-exam");
+      changeStudentStatus("taking-exam");
       if (examCodeRef.current && studentNameRef.current) {
         localStudentStorage.saveStudent({
           examCode: examCodeRef.current,
@@ -139,7 +191,7 @@ export default function Home() {
 
     socket.on("exam:submitted", () => {
       setFinishReason("submitted");
-      setStatus("finished");
+      changeStudentStatus("finished");
       console.log("Exam submitted");
       socketRef.current?.emit("exam:disconnect", examCodeRef.current);
       clearSavedStudent();
@@ -163,7 +215,7 @@ export default function Home() {
     // Termination/reset events.
     socket.on("exam:terminated", (terms: TerminationTerms) => {
       setFinishReason(terms);
-      setStatus("finished");
+      changeStudentStatus("finished");
       socketRef.current?.emit("exam:disconnect", examCodeRef.current);
       clearSavedStudent();
     });
@@ -173,7 +225,7 @@ export default function Home() {
       examCodeRef.current = null;
       studentNameRef.current = null;
       clearSavedStudent();
-      setStatus("join-code");
+      changeStudentStatus("join-code");
       setExam(null);
       setStudentError("The teacher returned the exam to setup. Please wait for a new code.");
       console.log("Exam returned to setup");
@@ -184,13 +236,13 @@ export default function Home() {
       examCodeRef.current = null;
       studentNameRef.current = null;
       clearSavedStudent();
-      setStatus("join-code");
+      changeStudentStatus("join-code");
       setStudentError("The exam has been pre-terminated by the teacher. Please wait for further instructions.");
       console.log("Exam pre-terminated");
     });
 
     socket.on("exam:setback", (uniqueExam: Exam) => {
-      setStatus("waiting");
+      changeStudentStatus("waiting");
       setExam(uniqueExam);
       setStudentError("The exam has been reset. Please wait for further instructions.");
       console.log("Exam setback");
@@ -206,7 +258,7 @@ export default function Home() {
         autoRejoinAttemptedRef.current = true;
         examCodeRef.current = savedStudent.examCode;
         studentNameRef.current = savedStudent.studentName;
-        setStatus("waiting");
+        changeStudentStatus("waiting");
         socket.emit("exam:join", savedStudent.examCode, savedStudent.studentName, true);
       }
     });
@@ -228,7 +280,7 @@ export default function Home() {
       studentNameRef.current = null;
       errorAlertRef.current = null;
     };
-  }, []);
+  }, [changeStudentStatus]);
 
   useEffect(() => {
     const interval = setInterval(syncExam, 5000); // Sync every 30 seconds.
@@ -256,6 +308,7 @@ export default function Home() {
     const normalizedName = name.trim().replace(/\s+/g, " ").toUpperCase();
     setStudentError(null);
     studentNameRef.current = normalizedName;
+    prepareSecureExamSession();
     console.log(`Attempting to join exam with code: ${examCodeRef.current} and name: ${normalizedName}`);
     socketRef.current?.emit("exam:join", examCodeRef.current, normalizedName);
   }
