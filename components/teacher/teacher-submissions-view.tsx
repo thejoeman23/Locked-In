@@ -1,17 +1,15 @@
 "use client"
 
 import { Download } from "lucide-react";
-import type { Exam, Student } from "@/lib/exam-layout";
-import { Button } from "@/components/ui/button";
+import type { Student } from "@/lib/exam-layout";
+import { AlertButton } from "@/components/common/alert-button";
 
 type Props = {
-  examStatus: Exam["status"];
   students: Student[];
 };
 
-export function SubmissionsView({ examStatus, students }: Props) {
+export function SubmissionsView({ students }: Props) {
   const submittedCount = students.filter((student) => student.completed).length;
-  const canDownload = examStatus === "setup" && submittedCount > 0;
 
   return (
     <section className="mx-auto w-full max-w-2xl px-4 py-8">
@@ -23,10 +21,16 @@ export function SubmissionsView({ examStatus, students }: Props) {
               {submittedCount} of {students.length} students submitted.
             </p>
           </div>
-          <Button type="button" disabled={!canDownload}>
+          <AlertButton
+            type="button"
+            alertTitle="Coming soon"
+            alertDescription="Downloading submissions is not implemented yet, but it is coming soon."
+            confirmText="Got it"
+            cancelText="Close"
+          >
             <Download className="size-4" />
             Download
-          </Button>
+          </AlertButton>
         </div>
       </div>
     </section>

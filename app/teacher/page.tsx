@@ -14,7 +14,9 @@ import { generateExamID, NewExam } from "@/lib/utils";
 type TemplateTile = {
   title: string;
   icon: React.ReactNode;
-  createExam: () => Exam;
+  createExam?: () => Exam;
+  alertTitle?: string;
+  alertDescription?: string;
 };
 
 const templateTiles: TemplateTile[] = [
@@ -36,7 +38,8 @@ const templateTiles: TemplateTile[] = [
   {
     title: "Create from PDF",
     icon: <Upload className="size-12 text-slate-500" strokeWidth={2.2} />,
-    createExam: () => withNewExamId(NewExam(), "Imported PDF exam")
+    alertTitle: "Coming soon",
+    alertDescription: "Creating an exam from a PDF is not implemented yet, but it is coming soon."
   }
 ];
 
@@ -62,7 +65,11 @@ export default function TeacherHome() {
     };
   }, []);
 
-  async function createExam(createExamFromTemplate: () => Exam) {
+  async function createExam(createExamFromTemplate?: () => Exam) {
+    if (!createExamFromTemplate) {
+      return;
+    }
+
     const exam = createExamFromTemplate();
     await localTeacherStorage.saveExam(exam);
     router.push(`/teacher/${exam.id}`);
@@ -96,6 +103,8 @@ export default function TeacherHome() {
                 title={template.title}
                 ariaLabel={`Create ${template.title}`}
                 preview={template.icon}
+                alertTitle={template.alertTitle}
+                alertDescription={template.alertDescription}
                 onOpen={() => createExam(template.createExam)}
               />
             ))}

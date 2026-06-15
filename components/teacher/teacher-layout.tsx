@@ -107,7 +107,6 @@ export function TeacherLayout({ exam, examCode, mode, roster, students, updateEx
 
       {mode === "submissions" && (
         <SubmissionsView
-          examStatus={exam.status}
           students={students}
         />
       )}
