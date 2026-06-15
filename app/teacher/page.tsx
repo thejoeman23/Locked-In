@@ -79,9 +79,14 @@ export default function TeacherHome() {
     router.push(`/teacher/${exam.id}`);
   }
 
+  async function deleteExam(exam: Exam) {
+    await localTeacherStorage.deleteExam(exam.id);
+    setRecentExams((currentExams) => currentExams.filter((item) => item.id !== exam.id));
+  }
+
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b bg-background">
+      <header className="sticky top-0 z-10 border-b bg-background shadow-xs">
         <div className="flex h-16 items-center gap-3 px-6">
           <BackButton />
           <div className="flex items-center gap-2">
@@ -129,6 +134,7 @@ export default function TeacherHome() {
                 metadata={getExamSummary(exam)}
                 previewClassName="bg-slate-50"
                 onOpen={() => openExam(exam)}
+                onDelete={() => deleteExam(exam)}
               />
             ))}
           </div>

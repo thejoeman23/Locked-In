@@ -39,7 +39,7 @@ export function TeacherLayout({ exam, examCode, mode, roster, students, updateEx
   return (
     <main className="min-h-screen w-full bg-[#f1f3f4] text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background shadow-xs">
-        <div className="relative flex min-h-18 items-center gap-4 px-4">
+        <div className="relative flex h-16 items-center gap-3 px-6">
           <BackButton />
           <div className="min-w-0 flex-1">
             <ExamTitle

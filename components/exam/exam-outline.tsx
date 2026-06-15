@@ -21,7 +21,7 @@ export function ExamOutline({ exam, className }: Props) {
     <aside className={cn("sticky top-24 h-fit max-h-[calc(100vh-7rem)] overflow-y-auto rounded-lg border border-slate-300 bg-slate-50/95 p-4 shadow-xs", className)}>
       <div className="mb-4 flex items-center gap-2 border-b border-slate-300 pb-3 text-sm font-semibold text-slate-900">
         <ListTree className="size-4 text-slate-600" />
-        Exam Outline
+        Exam Navigator
       </div>
 
       {exam.content.length === 0 ? (

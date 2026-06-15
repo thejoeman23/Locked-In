@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { DeleteButton } from "@/components/common/delete-button";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -21,6 +22,7 @@ type Props = {
   previewClassName?: string;
   alertTitle?: ReactNode;
   alertDescription?: ReactNode;
+  onDelete?: () => void;
   onOpen: () => void;
 };
 
@@ -32,6 +34,7 @@ export function ExamCard({
   previewClassName,
   alertTitle,
   alertDescription,
+  onDelete,
   onOpen
 }: Props) {
   const previewButton = (
@@ -73,7 +76,18 @@ export function ExamCard({
         </AlertDialog>
       ) : previewButton}
       <div className="mt-2">
-        <p className="truncate text-sm font-medium">{title}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="min-w-0 flex-1 truncate text-sm font-medium">{title}</p>
+          {onDelete && (
+            <DeleteButton
+              triggersAlert
+              label={`Delete ${title}`}
+              alertDescription="This will permanently delete this saved exam from this browser."
+              onClick={onDelete}
+              className="size-6 shrink-0 border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+            />
+          )}
+        </div>
         {metadata && (
           <p className="mt-1 truncate text-xs text-muted-foreground">{metadata}</p>
         )}
