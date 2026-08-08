@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Locked In
 
-## Getting Started
+Locked In is a prototype exam workspace built as a concept for making English exams easier to create, administer, complete, and review online.
 
-First, run the development server:
+The project was made in 3 weeks as an early proof of concept. It is not production ready. It uses in-memory server state, permissive development CORS, and prototype-level validation, so it should be treated as a demo rather than a reliable exam platform.
+
+## Purpose
+
+Locked In explores a simpler workflow for English exams:
+
+- Teachers can create an exam, build sections and questions, add a roster, and start a live exam session.
+- Students can join with an exam code, complete the exam in the browser, and submit their work.
+- Teachers can monitor student status and review submitted responses.
+
+## Stack
+
+- Frontend: Next.js, React, TypeScript, Tailwind CSS, shadcn/ui-style components, and lucide-react icons.
+- Realtime backend: Node.js HTTP server with Socket.IO.
+- Data/storage: In-memory exam sessions on the backend. There is no database or durable persistence in this prototype.
+- Deployment: Frontend deployed on Vercel. Backend deployed on Railway, but the Railway backend is now offline.
+
+## Domain
+
+While the backend may be offline, the website is not. You can visit it at [locked-in-eta-eight.vercel.app/](https://locked-in-eta-eight.vercel.app/) and explore the teacher workflow for creating and hosting exams, though you will not be able to actually host an exam yourself.
+
+## Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the Next.js frontend:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run the Socket.IO backend:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run server
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+By default, the frontend expects the backend at `http://localhost:3001`. For a deployed or remote backend, set `NEXT_PUBLIC_SOCKET_URL`.
